@@ -491,7 +491,7 @@ function initTerminal() {
       else if (text.startsWith('(nil)')) colorClass = 'text-slate-400';
       else if (text.startsWith('#') || text.startsWith('=')) colorClass = 'text-cyan-400 font-semibold';
       
-      div.innerHTML = `<pre class="${colorClass} whitespace-pre-wrap font-mono">${escapeHtml(text)}</pre>`;
+      div.innerHTML = `<pre class="${colorClass} whitespace-pre-wrap break-words break-all font-mono">${escapeHtml(text)}</pre>`;
     }
     
     terminalOutput.appendChild(div);
@@ -1081,13 +1081,28 @@ window.simulateHashLookup = function(sampleKey) {
   if (sampleKey) {
     keyInput.value = sampleKey;
   }
-  const key = keyInput.value.trim();
-  if (!key) return;
+  let key = (keyInput ? keyInput.value : '').trim();
+  if (!key) {
+    key = 'user:25011962:carreira';
+    if (keyInput) keyInput.value = key;
+  }
+
+  // Normalização inteligente de chaves cadastradas
+  let lookupKey = key;
+  if (!kvEngine.store.has(lookupKey)) {
+    if (kvEngine.store.has(`user:${key}:carreira`)) {
+      lookupKey = `user:${key}:carreira`;
+    } else if (kvEngine.store.has(`user:${key}`)) {
+      lookupKey = `user:${key}`;
+    } else if (kvEngine.store.has(`user:${key}:perfil`)) {
+      lookupKey = `user:${key}:perfil`;
+    }
+  }
 
   // Algoritmo de hash simples DJB2 para visualização didática
   let hash = 5381;
-  for (let i = 0; i < key.length; i++) {
-    hash = ((hash << 5) + hash) + key.charCodeAt(i);
+  for (let i = 0; i < lookupKey.length; i++) {
+    hash = ((hash << 5) + hash) + lookupKey.charCodeAt(i);
     hash = hash & hash; // Converte para 32-bit integer
   }
   const unsignedHash = Math.abs(hash);
@@ -1095,26 +1110,52 @@ window.simulateHashLookup = function(sampleKey) {
   const hexAddress = '0x' + (unsignedHash.toString(16).padStart(8, '0').slice(0, 6));
 
   // Atualiza painel didático
-  document.getElementById('hash-key-display').textContent = `"${key}"`;
-  document.getElementById('hash-raw-display').textContent = unsignedHash.toLocaleString();
-  document.getElementById('hash-bucket-display').textContent = `Bucket [${bucketIndex}]`;
-  document.getElementById('hash-mem-display').textContent = hexAddress;
+  const keyDisplay = document.getElementById('hash-key-display');
+  const rawDisplay = document.getElementById('hash-raw-display');
+  const bucketDisplay = document.getElementById('hash-bucket-display');
+  const memDisplay = document.getElementById('hash-mem-display');
 
-  // Animação dos buckets
+  if (keyDisplay) keyDisplay.textContent = `"${lookupKey}"`;
+  if (rawDisplay) rawDisplay.textContent = unsignedHash.toLocaleString();
+  if (bucketDisplay) bucketDisplay.textContent = `Bucket [${bucketIndex}]`;
+  if (memDisplay) memDisplay.textContent = hexAddress;
+
+  // Animação e destaque dos buckets
   const buckets = document.querySelectorAll('.hash-bucket-item');
   buckets.forEach((b, idx) => {
-    b.classList.remove('bg-purple-600', 'text-white', 'scale-105', 'ring-2', 'ring-purple-400');
+    b.classList.remove('bg-purple-600', 'text-white', 'ring-2', 'ring-purple-400', 'scale-105', 'border-purple-500');
+    b.classList.add('bg-zinc-900/90', 'text-zinc-400', 'border-zinc-800');
     if (idx === bucketIndex) {
-      b.classList.add('bg-purple-600', 'text-white', 'scale-105', 'ring-2', 'ring-purple-400');
+      b.classList.remove('bg-zinc-900/90', 'text-zinc-400', 'border-zinc-800');
+      b.classList.add('bg-purple-600', 'text-white', 'ring-2', 'ring-purple-400', 'scale-105', 'border-purple-500');
     }
   });
 
-  const resultVal = kvEngine.get(key);
+  const resultVal = kvEngine.get(lookupKey);
   const resultDisplay = document.getElementById('hash-lookup-result');
+  if (!resultDisplay) return;
+
   if (resultVal !== null) {
-    resultDisplay.innerHTML = `<span class="text-emerald-400 font-semibold"><i class="fa-solid fa-check"></i> Encontrado em O(1) (Tempo: ~0.08 ms)</span>: <pre class="mt-1 text-xs text-slate-300 font-mono">${escapeHtml(typeof resultVal === 'object' ? JSON.stringify(resultVal, null, 2) : resultVal)}</pre>`;
+    const formatted = typeof resultVal === 'object' ? JSON.stringify(resultVal, null, 2) : String(resultVal);
+    resultDisplay.innerHTML = `
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-2 pb-2 border-b border-zinc-800/80">
+        <span class="text-emerald-400 font-semibold flex items-center gap-1.5 text-xs">
+          <i class="fa-solid fa-check-circle"></i> Encontrado em O(1) (Latência: ~0.08 ms em RAM)
+        </span>
+        <span class="text-[11px] font-mono text-zinc-400">Chave: <strong class="text-purple-300 font-mono">${escapeHtml(lookupKey)}</strong></span>
+      </div>
+      <div class="w-full overflow-x-auto max-w-full">
+        <pre class="text-xs text-zinc-200 font-mono whitespace-pre-wrap break-words break-all leading-relaxed max-w-full">${escapeHtml(formatted)}</pre>
+      </div>
+    `;
   } else {
-    resultDisplay.innerHTML = `<span class="text-slate-400"><i class="fa-solid fa-info-circle"></i> Chave mapeada para o Bucket [${bucketIndex}], porém ainda não gravada no KV Engine.</span>`;
+    resultDisplay.innerHTML = `
+      <div class="flex items-center gap-2 text-amber-400 text-xs">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>Chave mapeada para o <strong>Bucket [${bucketIndex}]</strong>, porém não gravada no KV Engine.</span>
+      </div>
+      <p class="text-[11px] text-zinc-400 mt-1">Dica: Selecione chaves como <code class="text-purple-300 font-mono">user:25011962:carreira</code> ou clique em um dos atalhos rápidos.</p>
+    `;
   }
 };
 

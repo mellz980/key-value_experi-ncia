@@ -779,18 +779,18 @@
                 Digite uma chave para ver a função hash calcular o bucket em tempo constante O(1).
               </p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               <button onclick="simulateHashLookup('user:25011962:carreira')"
-                class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-mono transition">
-                user:25011962
+                class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-purple-300 text-xs font-mono transition">
+                user:25011962:carreira
               </button>
-              <button onclick="simulateHashLookup('user:101:carreira')"
-                class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-mono transition">
-                user:101:carreira
+              <button onclick="simulateHashLookup('user:25011960:carreira')"
+                class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-purple-300 text-xs font-mono transition">
+                user:25011960:carreira
               </button>
-              <button onclick="simulateHashLookup('stat:curso:ia')"
-                class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-mono transition">
-                stat:curso:ia
+              <button onclick="simulateHashLookup('user:25011962:perfil')"
+                class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-indigo-300 text-xs font-mono transition">
+                user:25011962:perfil (Hash)
               </button>
             </div>
           </div>
@@ -798,10 +798,11 @@
           <!-- Input da chave -->
           <div class="flex flex-col sm:flex-row gap-3 mb-6">
             <input type="text" id="demo-hash-input" value="user:25011962:carreira"
-              placeholder="Ex: user:25011962:carreira"
+              onkeydown="if(event.key === 'Enter') simulateHashLookup();"
+              placeholder="Ex: user:25011962:carreira ou digite o RA..."
               class="flex-1 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-purple-500">
             <button onclick="simulateHashLookup()"
-              class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition flex items-center justify-center gap-2 focus:ring-2 focus:ring-purple-500">
+              class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition flex items-center justify-center gap-2 focus:ring-2 focus:ring-purple-500 cursor-pointer">
               <i data-lucide="play" class="w-4 h-4"></i>
               <span>Calcular Hash O(1)</span>
             </button>
@@ -886,7 +887,7 @@
           </div>
 
           <!-- Resultado do Lookup -->
-          <div id="hash-lookup-result" class="mt-4 p-3 rounded-lg bg-black/40 border border-zinc-800 text-xs">
+          <div id="hash-lookup-result" class="mt-4 p-3.5 rounded-xl bg-zinc-950/90 border border-zinc-800 text-xs max-w-full overflow-hidden">
             <!-- Preenchido via app.js -->
           </div>
 
