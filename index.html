@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark scroll-smooth">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NoSQL Key-Value Store | Big Data & Analytics - FECAP</title>
+  <meta name="description"
+    content="Aplicação interativa sobre Bancos de Dados NoSQL Chave-Valor (Key-Value Store) com simulador Redis e análise da pesquisa acadêmica de Planejamento de Futuro e Carreira.">
+
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              200: '#ddd6fe',
+              300: '#c4b5fd',
+              400: '#a78bfa',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9',
+              800: '#5b21b6',
+              900: '#4c1d95',
+              950: '#2e1065'
+            },
+            dark: {
+              bg: '#0a0c10',
+              card: '#161922',
+              cardHover: '#1c202c',
+              border: '#27272a',
+              borderLight: '#3f3f46'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- FontAwesome 6 Icons CDN (Fallback & ícones específicos) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <!-- Estilos customizados da atmosfera Dark Tech refinada -->
+  <style>
+    :root {
+      --bg-main: #0a0c10;
+      --card-bg: #161922;
+      --card-border: #27272a;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: #f4f4f5;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      overflow-x: hidden;
+    }
+
+    code,
+    kbd,
+    samp,
+    pre,
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Grade de fundo sutil com máscara radial suave */
+    .bg-tech-grid {
+      background-image:
+        linear-gradient(to right, rgba(139, 92, 246, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(139, 92, 246, 0.05) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: radial-gradient(circle at 50% 20%, black 40%, transparent 90%);
+      -webkit-mask-image: radial-gradient(circle at 50% 20%, black 40%, transparent 90%);
+    }
+
+    /* Barra de rolagem personalizada e limpa */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #0a0c10;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #3f3f46;
+      border-radius: 9999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #7c3aed;
+    }
+
+    /* Terminal Web Styling */
+    .terminal-body {
+      background-color: #0d0f15;
+      color: #e4e4e7;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .terminal-output {
+      min-height: 250px;
+      max-height: 380px;
+      overflow-y: auto;
+      font-size: 0.8125rem;
+      line-height: 1.5;
+    }
+
+    /* Active Nav Link Style (controlado via ScrollSpy JS) */
+    .nav-link.active {
+      color: #c4b5fd !important;
+      background-color: rgba(139, 92, 246, 0.15) !important;
+      font-weight: 600;
+    }
+
+    /* Modo Apresentação Acadêmica */
+    body.presentation-mode {
+      font-size: 1.1rem;
+    }
+
+    body.presentation-mode .presentation-badge {
+      display: inline-flex !important;
+    }
+
+    /* Dropdown no hover desktop */
+    .nav-dropdown:hover .nav-dropdown-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    /* Cards dinâmicos do Store Explorer e modais */
+    .glass-panel {
+      background-color: #161922 !important;
+      border: 1px solid #27272a !important;
+    }
+
+    .interactive-card {
+      transition: all 0.2s ease-in-out;
+    }
+
+    .interactive-card:hover {
+      border-color: rgba(139, 92, 246, 0.4) !important;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-[#0a0c10] text-zinc-100 selection:bg-purple-600 selection:text-white overflow-x-hidden">
+
+  <!-- Background Grid Decorativo Elegante -->
+  <div class="fixed inset-0 bg-tech-grid pointer-events-none z-0"></div>
+
+  <!-- =========================================================================
+       1. CABEÇALHO / NAVBAR REORGANIZADA COM GRUPOS E DROPDOWNS
+       ========================================================================= -->
+  <header
+    class="fixed top-0 left-0 right-0 z-50 bg-[#0a0c10]/90 backdrop-blur-md border-b border-zinc-800/80 transition-all duration-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+
+      <!-- Identidade Acadêmica e Logo (Sem compressão) -->
+      <a href="#hero" class="flex items-center gap-3 min-w-0 flex-shrink-0 group">
+        <div
+          class="w-9 h-9 rounded-lg bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:bg-purple-600 group-hover:text-white transition-all duration-200">
+          <i data-lucide="database" class="w-5 h-5"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="font-bold text-sm sm:text-base tracking-tight flex items-center gap-2 truncate">
+            <span class="text-white">NoSQL <span class="text-purple-400 font-extrabold">Key-Value</span></span>
+            <span
+              class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20 hidden sm:inline-block">FECAP
+              Big Data</span>
+          </div>
+          <div class="text-[11px] text-zinc-400 truncate hidden md:block">Planejamento de Futuro & Análise Prática</div>
+        </div>
+      </a>
+
+      <!-- Menu de Navegação Desktop Agrupado em 3 Categorias Lógicas -->
+      <nav class="hidden lg:flex items-center gap-1.5 text-xs font-medium text-zinc-300">
+
+        <!-- Grupo 1: Visão Geral -->
+        <div class="relative nav-dropdown py-2">
+          <button
+            class="px-3 py-1.5 rounded-lg hover:text-white hover:bg-zinc-800/60 transition flex items-center gap-1.5 text-zinc-300">
+            <span>Visão Geral</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400"></i>
+          </button>
+          <div
+            class="nav-dropdown-menu absolute left-0 top-full mt-1 w-48 rounded-xl bg-[#161922] border border-zinc-800 p-1.5 shadow-2xl opacity-0 invisible -translate-y-1 transition-all duration-200 pointer-events-none z-50">
+            <a href="#introducao"
+              class="nav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:text-white hover:bg-zinc-800/70 transition">
+              <i data-lucide="book-open" class="w-3.5 h-3.5 text-purple-400"></i>
+              <span>Introdução</span>
+            </a>
+            <a href="#conceitos"
+              class="nav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:text-white hover:bg-zinc-800/70 transition">
+              <i data-lucide="key" class="w-3.5 h-3.5 text-purple-400"></i>
+              <span>Conceitos</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Grupo 2: Arquitetura -->
+        <div class="relative nav-dropdown py-2">
+          <button
+            class="px-3 py-1.5 rounded-lg hover:text-white hover:bg-zinc-800/60 transition flex items-center gap-1.5 text-zinc-300">
+            <span>Arquitetura</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400"></i>
+          </button>
+          <div
+            class="nav-dropdown-menu absolute left-0 top-full mt-1 w-48 rounded-xl bg-[#161922] border border-zinc-800 p-1.5 shadow-2xl opacity-0 invisible -translate-y-1 transition-all duration-200 pointer-events-none z-50">
+            <a href="#beneficios"
+              class="nav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:text-white hover:bg-zinc-800/70 transition">
+              <i data-lucide="cpu" class="w-3.5 h-3.5 text-purple-400"></i>
+              <span>Características</span>
+            </a>
+            <a href="#casos-de-uso"
+              class="nav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:text-white hover:bg-zinc-800/70 transition">
+              <i data-lucide="building-2" class="w-3.5 h-3.5 text-purple-400"></i>
+              <span>Mercado</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Grupo 3: Prática & Análise -->
+        <div class="relative nav-dropdown py-2">
+          <button
+            class="px-3 py-1.5 rounded-lg hover:text-white hover:bg-zinc-800/60 transition flex items-center gap-1.5 text-zinc-300">
+            <span>Prática & Análise</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400"></i>
+          </button>
+          <div
+            class="nav-dropdown-menu absolute left-0 top-full mt-1 w-52 rounded-xl bg-[#161922] border border-zinc-800 p-1.5 shadow-2xl opacity-0 invisible -translate-y-1 transition-all duration-200 pointer-events-none z-50">
+            <a href="#demonstracao"
+              class="nav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:text-white hover:bg-zinc-800/70 transition">
+              <i data-lucide="terminal" class="w-3.5 h-3.5 text-purple-400"></i>
+              <span>Simulador & Pesquisa</span>
+            </a>
+            <a href="#comparacao"
+              class="nav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:text-white hover:bg-zinc-800/70 transition">
+              <i data-lucide="columns-3" class="w-3.5 h-3.5 text-purple-400"></i>
+              <span>Comparativo</span>
+            </a>
+            <a href="#conclusao"
+              class="nav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:text-white hover:bg-zinc-800/70 transition">
+              <i data-lucide="flag" class="w-3.5 h-3.5 text-purple-400"></i>
+              <span>Conclusão</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Botão Direto para o Simulador -->
+        <a href="#demonstracao"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-600/20 text-purple-300 hover:bg-purple-600 hover:text-white border border-purple-500/30 transition flex items-center gap-1.5">
+          <i data-lucide="play-circle" class="w-3.5 h-3.5"></i>
+          <span>Simulador Prático</span>
+        </a>
+
+      </nav>
+
+      <!-- Botões de Ação à Direita -->
+      <div class="flex items-center gap-2 flex-shrink-0">
+
+        <!-- Botão Modo Apresentação -->
+        <button onclick="togglePresentationMode()" title="Modo Apresentação (Tela Cheia)"
+          class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700/60 flex items-center gap-1.5 transition">
+          <i data-lucide="presentation" class="w-4 h-4 text-purple-400"></i>
+          <span class="hidden sm:inline">Apresentação</span>
+        </button>
+
+        <!-- Botão Alternador de Tema -->
+        <button id="theme-toggle-btn" title="Alternar Modo Escuro / Claro"
+          class="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700/60 transition focus:outline-none focus:ring-2 focus:ring-purple-500">
+          <i class="fa-solid fa-moon dark:hidden"></i>
+          <i class="fa-solid fa-sun hidden dark:inline text-amber-400"></i>
+        </button>
+
+        <!-- Botão Hambúrguer Mobile -->
+        <button id="mobile-menu-btn"
+          class="p-2 rounded-lg lg:hidden bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700/60 transition focus:outline-none focus:ring-2 focus:ring-purple-500"
+          aria-label="Abrir Menu">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Menu Dropdown Mobile Compacto e Organizado -->
+    <div id="mobile-nav"
+      class="hidden lg:hidden border-t border-zinc-800 bg-[#0d0f15]/95 px-4 py-3 space-y-3 text-xs max-h-[80vh] overflow-y-auto">
+      <div>
+        <span class="text-[10px] uppercase font-mono font-bold text-zinc-500 tracking-wider">Visão Geral</span>
+        <div class="mt-1 space-y-1 pl-2">
+          <a href="#introducao" class="nav-link block py-1.5 text-zinc-300 hover:text-purple-400">Introdução</a>
+          <a href="#conceitos" class="nav-link block py-1.5 text-zinc-300 hover:text-purple-400">Conceitos</a>
+        </div>
+      </div>
+      <div>
+        <span class="text-[10px] uppercase font-mono font-bold text-zinc-500 tracking-wider">Arquitetura</span>
+        <div class="mt-1 space-y-1 pl-2">
+          <a href="#beneficios" class="nav-link block py-1.5 text-zinc-300 hover:text-purple-400">Características</a>
+          <a href="#casos-de-uso" class="nav-link block py-1.5 text-zinc-300 hover:text-purple-400">Mercado</a>
+        </div>
+      </div>
+      <div>
+        <span class="text-[10px] uppercase font-mono font-bold text-zinc-500 tracking-wider">Prática & Análise</span>
+        <div class="mt-1 space-y-1 pl-2">
+          <a href="#demonstracao" class="nav-link block py-1.5 text-purple-400 font-semibold">Simulador & Pesquisa</a>
+          <a href="#comparacao" class="nav-link block py-1.5 text-zinc-300 hover:text-purple-400">Comparativo</a>
+          <a href="#conclusao" class="nav-link block py-1.5 text-zinc-300 hover:text-purple-400">Conclusão</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Container Principal -->
+  <main class="relative z-10 pt-16">
+
+    <!-- =========================================================================
+         2. HERO SECTION COM PROPORÇÃO CORRIGIDA & 4 CARDS PADRONIZADOS
+         ========================================================================= -->
+    <section id="hero" class="relative pt-16 pb-16 lg:pt-24 lg:pb-20 overflow-hidden">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Header Centralizado do Hero -->
+        <div class="text-center max-w-3xl mx-auto">
+
+          <!-- Título Hero com Hierarquia Reduzida e Sóbria -->
+          <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight text-white">
+            Bancos de Dados NoSQL <br>
+            <span
+              class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-violet-300 to-indigo-400">Chave-Valor
+              (Key-Value)</span>
+          </h1>
+
+          <!-- Descrição do Projeto -->
+          <p class="mt-4 text-base sm:text-lg text-zinc-300 max-w-2xl mx-auto leading-relaxed">
+            Uma imersão completa em arquiteturas de altíssima performance, latência sub-milissegundo in-memory e
+            aplicação prática dos dados da pesquisa <strong class="text-purple-300">"Planejamento do Futuro e
+              Carreira"</strong>.
+          </p>
+
+          <!-- Ações CTA -->
+          <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <a href="#demonstracao"
+              class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs sm:text-sm shadow-md shadow-purple-600/20 hover:shadow-purple-600/40 transition-all duration-200 flex items-center gap-2 focus:ring-2 focus:ring-purple-500">
+              <i data-lucide="terminal" class="w-4 h-4"></i>
+              <span>Acessar Simulador & Pesquisa</span>
+            </a>
+            <a href="#conceitos"
+              class="px-6 py-2.5 rounded-xl bg-[#161922] hover:bg-zinc-800 text-zinc-200 hover:text-white border border-zinc-800 font-medium text-xs sm:text-sm transition-all duration-200 flex items-center gap-2 focus:ring-2 focus:ring-purple-500">
+              <i data-lucide="book-open" class="w-4 h-4 text-purple-400"></i>
+              <span>Ver Conceitos Teóricos</span>
+            </a>
+          </div>
+
+          <!-- Metadados de Autoria Acadêmica -->
+          <div
+            class="mt-8 pt-6 border-t border-zinc-800/60 text-xs text-zinc-400 flex flex-wrap justify-center items-center gap-x-6 gap-y-2">
+            <div class="flex items-center gap-2 flex-wrap justify-center">
+              <i data-lucide="users" class="w-4 h-4 text-purple-400 flex-shrink-0"></i>
+              <span>Apresentadoras: <strong class="text-zinc-200">Beatriz Fernandez, Manuella Moretti, Raíssa Ramos e
+                  Melissa Nunes</strong></span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <i data-lucide="database" class="w-4 h-4 text-purple-400"></i>
+              <span>Tópico: <strong class="text-zinc-200">NoSQL Key-Value Stores (Redis / DynamoDB)</strong></span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 4 Cards de Métricas Padronizados (Sem Neon, Coesos e Dark Tech) -->
+        <div class="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
+
+          <!-- Card 1: Complexidade -->
+          <div
+            class="bg-[#161922] p-5 rounded-2xl border border-zinc-800 hover:border-purple-500/40 transition-all duration-200 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-mono uppercase text-zinc-400 font-semibold">Complexidade de Busca</span>
+                <span
+                  class="px-2 py-0.5 rounded text-[10px] font-mono bg-purple-500/10 text-purple-300 border border-purple-500/20">Hash
+                  Table</span>
+              </div>
+              <div class="text-3xl font-extrabold text-white font-mono tracking-tight">O(1)</div>
+            </div>
+            <p class="text-xs text-zinc-400 mt-3 pt-3 border-t border-zinc-800/80 leading-relaxed">
+              Tempo de acesso direto constante e previsível via chave primária indexada.
+            </p>
+          </div>
+
+          <!-- Card 2: Latência -->
+          <div
+            class="bg-[#161922] p-5 rounded-2xl border border-zinc-800 hover:border-purple-500/40 transition-all duration-200 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-mono uppercase text-zinc-400 font-semibold">Latência In-Memory</span>
+                <span
+                  class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">RAM
+                  Pura</span>
+              </div>
+              <div class="text-3xl font-extrabold text-emerald-400 font-mono tracking-tight">&lt; 1 ms</div>
+            </div>
+            <p class="text-xs text-zinc-400 mt-3 pt-3 border-t border-zinc-800/80 leading-relaxed">
+              Respostas em microssegundos sem gargalos de I/O de disco mecânico.
+            </p>
+          </div>
+
+          <!-- Card 3: Dados Reais -->
+          <div
+            class="bg-[#161922] p-5 rounded-2xl border border-zinc-800 hover:border-purple-500/40 transition-all duration-200 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-mono uppercase text-zinc-400 font-semibold">Dados Reais Modelados</span>
+                <span
+                  class="px-2 py-0.5 rounded text-[10px] font-mono bg-purple-500/10 text-purple-300 border border-purple-500/20">Dataset
+                  FECAP</span>
+              </div>
+              <div class="text-3xl font-extrabold text-purple-400 font-mono tracking-tight">72 Alunos</div>
+            </div>
+            <p class="text-xs text-zinc-400 mt-3 pt-3 border-t border-zinc-800/80 leading-relaxed">
+              Formulários reais de planejamento de carreira transformados em pares chave-valor.
+            </p>
+          </div>
+
+          <!-- Card 4: Flexibilidade -->
+          <div
+            class="bg-[#161922] p-5 rounded-2xl border border-zinc-800 hover:border-purple-500/40 transition-all duration-200 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-mono uppercase text-zinc-400 font-semibold">Flexibilidade Dinâmica</span>
+                <span
+                  class="px-2 py-0.5 rounded text-[10px] font-mono bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">Polimórfico</span>
+              </div>
+              <div class="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight">Schema-less</div>
+            </div>
+            <p class="text-xs text-zinc-400 mt-3 pt-3 border-t border-zinc-800/80 leading-relaxed">
+              Armazena strings, hashes e documentos JSON sem migrações de tabela rígidas.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         3. SEÇÃO 1: INTRODUÇÃO AO NoSQL E BIG DATA (ALINHAMENTO ESQUERDA)
+         ========================================================================= -->
+    <section id="introducao" class="py-16 sm:py-20 border-t border-zinc-800/80">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Cabeçalho da Seção -->
+        <div class="max-w-3xl mb-12 text-left">
+          <span
+            class="text-xs font-mono font-semibold uppercase tracking-wider text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20">Seção
+            1</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-3">O que é NoSQL e Por que Estudá-lo em Big Data?
+          </h2>
+          <p class="text-zinc-400 mt-2 text-sm sm:text-base leading-relaxed">
+            A transição do modelo relacional tradicional para arquiteturas distribuídas e escaláveis sob demanda de alta
+            concorrência.
+          </p>
+        </div>
+
+        <!-- Grid de 3 Cards Informativos -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+
+          <div class="bg-[#161922] p-6 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div
+                class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center mb-4">
+                <i data-lucide="layers" class="w-5 h-5"></i>
+              </div>
+              <h3 class="text-base font-bold text-white">O que são bancos NoSQL?</h3>
+              <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
+                O termo <strong class="text-purple-300">"Not Only SQL"</strong> refere-se a bancos de dados
+                não-relacionais, que abandonam o modelo estrito de tabelas interligadas por chaves estrangeiras para
+                atender a requisitos massivos de velocidade e escala.
+              </p>
+            </div>
+            <ul class="mt-4 pt-3 border-t border-zinc-800/80 space-y-2 text-xs text-zinc-300">
+              <li class="flex items-start gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+                <span><strong>Schema-free:</strong> Sem esquemas rígidos nem migrações custosas.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+                <span><strong>Escala Horizontal:</strong> Cresce distribuindo nós pelo cluster.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+                <span><strong>Modelo BASE:</strong> Disponibilidade e consistência eventual.</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="bg-[#161922] p-6 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div
+                class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-4">
+                <i data-lucide="gauge" class="w-5 h-5"></i>
+              </div>
+              <h3 class="text-base font-bold text-white">Big Data & os 5 Vs</h3>
+              <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
+                Sob os 5 Vs de Big Data (Volume, Velocidade, Variedade, Veracidade e Valor), bancos relacionais
+                tradicionais sofrem bloqueios (table locks) e gargalos de I/O em gravações intensas.
+              </p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-zinc-800/80 text-[11px] font-mono">
+              <div class="p-2 rounded bg-zinc-900/90 border border-zinc-800 text-zinc-300">
+                <span class="text-purple-400 font-bold block">Velocidade:</span> 100k+ ops/segundo
+              </div>
+              <div class="p-2 rounded bg-zinc-900/90 border border-zinc-800 text-zinc-300">
+                <span class="text-purple-400 font-bold block">Volume:</span> Terabytes em RAM
+              </div>
+              <div class="p-2 rounded bg-zinc-900/90 border border-zinc-800 text-zinc-300">
+                <span class="text-purple-400 font-bold block">Variedade:</span> JSON e Hashes
+              </div>
+              <div class="p-2 rounded bg-zinc-900/90 border border-zinc-800 text-zinc-300">
+                <span class="text-purple-400 font-bold block">Mercado:</span> Redis & DynamoDB
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-[#161922] p-6 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div
+                class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4">
+                <i data-lucide="target" class="w-5 h-5"></i>
+              </div>
+              <h3 class="text-base font-bold text-white">Objetivo do Seminário</h3>
+              <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
+                Demonstrar o funcionamento interno da categoria Chave-Valor, modelar 72 respostas reais de alunos da
+                FECAP e executar operações reais com métricas verificáveis.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-zinc-800/80 space-y-1.5 text-xs text-zinc-300">
+              <div class="flex items-center gap-2">
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <span>Compreender a estrutura de Hash Tables in-memory.</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <span>Modelar o arquivo CSV em JSON Key-Value.</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <span>Interagir com CLI estilo Redis em tempo real.</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Tabela Comparativa SQL vs NoSQL -->
+        <div class="mt-10 bg-[#161922] rounded-2xl p-6 border border-zinc-800 text-left">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-purple-400 mb-4 flex items-center gap-2">
+            <i data-lucide="git-compare" class="w-4 h-4"></i>
+            <span>Comparação Direta: Relacional (SQL) vs. Chave-Valor (NoSQL)</span>
+          </h4>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs min-w-[600px]">
+              <thead class="bg-zinc-900/80 text-zinc-300 uppercase font-mono text-[11px] border-b border-zinc-800">
+                <tr>
+                  <th class="p-3">Critério</th>
+                  <th class="p-3">Banco Relacional (SQL - PostgreSQL / MySQL)</th>
+                  <th class="p-3 text-purple-300">Banco NoSQL Key-Value (Redis / DynamoDB)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-zinc-800/80 text-zinc-300">
+                <tr>
+                  <td class="p-3 font-semibold text-white">Esquema de Dados</td>
+                  <td class="p-3">Rígido e pré-definido (DDL tables, constraints, types)</td>
+                  <td class="p-3 text-purple-300 font-medium">Dinâmico e flexível (Schema-less)</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-semibold text-white">Modelo de Escala</td>
+                  <td class="p-3">Vertical (scale-up: máquinas maiores e caras)</td>
+                  <td class="p-3 text-purple-300 font-medium">Horizontal (scale-out: sharding e particionamento)</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-semibold text-white">Garantias de Transação</td>
+                  <td class="p-3">ACID estrito</td>
+                  <td class="p-3 text-purple-300 font-medium">BASE (Disponibilidade e consistência eventual)</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-semibold text-white">Latência Média</td>
+                  <td class="p-3">5ms a 50ms (disco e joins)</td>
+                  <td class="p-3 text-emerald-400 font-mono font-bold">&lt; 0.5ms (Acesso direto em RAM)</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-semibold text-white">Melhor Aplicação</td>
+                  <td class="p-3">Sistemas contábeis e ERPs com integridade relacional densa</td>
+                  <td class="p-3 text-purple-300 font-medium">Caching, gestão de sessões, carrinhos, streaming e
+                    contadores</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         4. SEÇÃO 2: CONCEITOS FUNDAMENTAIS & ELEMENTOS DIDÁTICOS KEY-VALUE
+         ========================================================================= -->
+    <section id="conceitos" class="py-16 sm:py-20 border-t border-zinc-800/80 bg-[#0c0e14]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div class="max-w-3xl mb-12 text-left">
+          <span
+            class="text-xs font-mono font-semibold uppercase tracking-wider text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20">Seção
+            2</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-3">Conceitos Fundamentais: O Par Chave-Valor</h2>
+          <p class="text-zinc-400 mt-2 text-sm sm:text-base leading-relaxed">
+            A simplicidade elegante do modelo: como a chave serve de índice unívoco e o valor abriga qualquer payload
+            serializado.
+          </p>
+        </div>
+
+        <!-- DIAGRAMA VISUAL PEDAGÓGICO: ESTRUTURA KEY -> VALUE -->
+        <div class="bg-[#161922] p-6 rounded-2xl border border-zinc-800 mb-10 text-left">
+          <div class="flex items-center justify-between pb-3 mb-6 border-b border-zinc-800">
+            <span class="text-xs font-mono font-bold text-purple-400 flex items-center gap-2">
+              <i data-lucide="cpu" class="w-4 h-4"></i> Diagrama Estrutural: Par Key &rarr; Value em Memória RAM
+            </span>
+            <span
+              class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">Busca
+              O(1) via Hash Index</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+
+            <!-- Caixa da Chave -->
+            <div class="bg-zinc-900/90 p-4 rounded-xl border border-purple-500/30">
+              <span class="text-[10px] font-mono uppercase text-purple-400 font-bold block mb-1">1. CHAVE (Key
+                Identifier)</span>
+              <div
+                class="font-mono text-sm text-white font-semibold break-all bg-black/40 p-2.5 rounded-lg border border-zinc-800">
+                user:25011962:carreira
+              </div>
+              <p class="text-[11px] text-zinc-400 mt-2">
+                Identificador unívoco arbitrário com namespace padronizado (<code
+                  class="text-purple-300">entidade:id:recurso</code>).
+              </p>
+            </div>
+
+            <!-- Ponteiro / Função Hash -->
+            <div class="flex flex-col items-center justify-center p-2 text-center">
+              <div class="flex items-center gap-2 text-xs font-mono text-purple-300 font-semibold mb-1">
+                <i data-lucide="arrow-right-left" class="w-4 h-4 text-purple-400"></i>
+                <span>Função Hash / Ponteiro</span>
+              </div>
+              <div class="w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-500 rounded my-2"></div>
+              <span class="text-[10px] text-zinc-400 font-mono">Endereçamento RAM 0x7F4A &rarr; Bucket Index</span>
+            </div>
+
+            <!-- Caixa do Valor -->
+            <div class="bg-zinc-900/90 p-4 rounded-xl border border-indigo-500/30">
+              <span class="text-[10px] font-mono uppercase text-indigo-400 font-bold block mb-1">2. VALOR (Payload
+                Opaque/JSON)</span>
+              <div
+                class="font-mono text-xs text-zinc-300 bg-black/40 p-2.5 rounded-lg border border-zinc-800 max-h-28 overflow-y-auto">
+                <pre class="text-zinc-200">{"nome":"Melissa","curso":"IA","ano":"2° Ano"}</pre>
+              </div>
+              <p class="text-[11px] text-zinc-400 mt-2">
+                Dado serializado sem restrição de schema. O banco entrega o payload intacto para a aplicação.
+              </p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- BLOCOS DE CÓDIGO INTERATIVOS: REDIS vs DYNAMODB -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12 text-left">
+
+          <!-- Bloco 1: Redis CLI Syntax -->
+          <div class="bg-[#161922] p-5 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between pb-3 mb-3 border-b border-zinc-800">
+                <span class="text-xs font-mono font-bold text-red-400 flex items-center gap-2">
+                  <i class="fa-solid fa-cube text-red-400"></i> Redis CLI (In-Memory Data Store)
+                </span>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">Sintaxe Redis</span>
+              </div>
+              <p class="text-xs text-zinc-400 mb-3">
+                Operações atômicas de leitura e escrita com expiração automática (TTL):
+              </p>
+              <div
+                class="bg-[#0d0f15] p-3.5 rounded-xl border border-zinc-800/90 font-mono text-xs space-y-2 text-zinc-300 overflow-x-auto">
+                <div><span class="text-purple-400">SET</span> user:25011962:carreira <span
+                    class="text-emerald-300">"{\"nome\":\"Melissa\",\"curso\":\"IA\"}"</span> <span
+                    class="text-amber-400">EX 86400</span></div>
+                <div><span class="text-purple-400">GET</span> user:25011962:carreira</div>
+                <div><span class="text-purple-400">HSET</span> user:25011962:perfil curso <span
+                    class="text-emerald-300">"Inteligência Artificial"</span> satisfacao <span
+                    class="text-emerald-300">"Alta"</span></div>
+                <div><span class="text-purple-400">TTL</span> user:25011962:carreira</div>
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-zinc-800 text-[11px] text-zinc-400 flex justify-between">
+              <span>Complexidade: <strong class="text-purple-300 font-mono">O(1)</strong></span>
+              <span>Estrutura: <strong class="text-zinc-200">Hash Table</strong></span>
+            </div>
+          </div>
+
+          <!-- Bloco 2: AWS DynamoDB SDK -->
+          <div class="bg-[#161922] p-5 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between pb-3 mb-3 border-b border-zinc-800">
+                <span class="text-xs font-mono font-bold text-amber-400 flex items-center gap-2">
+                  <i class="fa-brands fa-aws text-amber-400"></i> AWS DynamoDB (Managed Serverless KV)
+                </span>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">JSON Payload</span>
+              </div>
+              <p class="text-xs text-zinc-400 mb-3">
+                Modelagem Chave de Partição (PK) e Chave de Classificação (SK):
+              </p>
+              <div
+                class="bg-[#0d0f15] p-3.5 rounded-xl border border-zinc-800/90 font-mono text-xs text-zinc-300 overflow-x-auto max-h-36">
+                <pre class="text-zinc-300">{
+  <span class="text-purple-400">"TableName"</span>: <span class="text-emerald-300">"AlunosFECAP"</span>,
+  <span class="text-purple-400">"Item"</span>: {
+    <span class="text-purple-400">"PK"</span>: { <span class="text-amber-400">"S"</span>: <span class="text-emerald-300">"USER#25011962"</span> },
+    <span class="text-purple-400">"SK"</span>: { <span class="text-amber-400">"S"</span>: <span class="text-emerald-300">"CARREIRA#2026"</span> },
+    <span class="text-purple-400">"Curso"</span>: { <span class="text-amber-400">"S"</span>: <span class="text-emerald-300">"Inteligência Artificial"</span> },
+    <span class="text-purple-400">"TTL"</span>: { <span class="text-amber-400">"N"</span>: <span class="text-emerald-300">"1774000000"</span> }
+  }
+}</pre>
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-zinc-800 text-[11px] text-zinc-400 flex justify-between">
+              <span>Escala: <strong class="text-amber-300 font-mono">Automática (Auto-scaling)</strong></span>
+              <span>Consistência: <strong class="text-zinc-200">Eventual ou Forte</strong></span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- SIMULADOR DIDÁTICO DE HASH TABLE E O(1) BUCKETS -->
+        <div class="bg-[#161922] rounded-2xl p-6 sm:p-8 border border-zinc-800 text-left">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <i data-lucide="calculator" class="w-5 h-5 text-purple-400"></i>
+                <span>Simulador Didático de Função Hash e Buckets de Memória O(1)</span>
+              </h3>
+              <p class="text-xs text-zinc-400 mt-1">
+                Digite uma chave para ver a função hash calcular o bucket em tempo constante O(1).
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="simulateHashLookup('user:25011962:carreira')"
+                class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-mono transition">
+                user:25011962
+              </button>
+              <button onclick="simulateHashLookup('user:101:carreira')"
+                class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-mono transition">
+                user:101:carreira
+              </button>
+              <button onclick="simulateHashLookup('stat:curso:ia')"
+                class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-mono transition">
+                stat:curso:ia
+              </button>
+            </div>
+          </div>
+
+          <!-- Input da chave -->
+          <div class="flex flex-col sm:flex-row gap-3 mb-6">
+            <input type="text" id="demo-hash-input" value="user:25011962:carreira"
+              placeholder="Ex: user:25011962:carreira"
+              class="flex-1 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <button onclick="simulateHashLookup()"
+              class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition flex items-center justify-center gap-2 focus:ring-2 focus:ring-purple-500">
+              <i data-lucide="play" class="w-4 h-4"></i>
+              <span>Calcular Hash O(1)</span>
+            </button>
+          </div>
+
+          <!-- 16 Buckets Virtuais -->
+          <div class="mb-4">
+            <div class="text-[11px] font-semibold text-zinc-400 mb-2 uppercase font-mono">Array de Buckets em Memória
+              RAM (Hash Slots):</div>
+            <div class="grid grid-cols-4 sm:grid-cols-8 md:grid-cols-16 gap-1.5 text-center font-mono text-xs">
+              <div
+                class="hash-bucket-item p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-400 transition-all duration-200">
+                0</div>
+              <div
+                class="hash-bucket-item p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-400 transition-all duration-200">
+                1</div>
+              <div
+                class="hash-bucket-item p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-400 transition-all duration-200">
+                2</div>
+              <div
+                class="hash-bucket-item p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-400 transition-all duration-200">
+                3</div>
+              <div
+                class="hash-bucket-item p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-400 transition-all duration-200">
+                4</div>
+              <div
+                class="hash-bucket-item p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-400 transition-all duration-200">
+                5</div>
+              <div
+                class="hash-bucket-item p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-400 transition-all duration-200">
+                6</div>
+              <div
+                class="hash-bucket-item p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-400 transition-all duration-200">
+                7</div>
+              <div
+                class="hash-bucket-item p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-400 transition-all duration-200">
+                8</div>
+              <div
+                class="hash-bucket-item p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-400 transition-all duration-200">
+                9</div>
+              <div
+                class="hash-bucket-item p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-400 transition-all duration-200">
+                10</div>
+              <div
+                class="hash-bucket-item p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-400 transition-all duration-200">
+                11</div>
+              <div
+                class="hash-bucket-item p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-400 transition-all duration-200">
+                12</div>
+              <div
+                class="hash-bucket-item p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-400 transition-all duration-200">
+                13</div>
+              <div
+                class="hash-bucket-item p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-400 transition-all duration-200">
+                14</div>
+              <div
+                class="hash-bucket-item p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 text-zinc-400 transition-all duration-200">
+                15</div>
+            </div>
+          </div>
+
+          <!-- Painel de Cálculos -->
+          <div
+            class="grid grid-cols-1 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-zinc-900/70 border border-zinc-800 text-xs">
+            <div>
+              <div class="text-zinc-400 font-sans">Chave Entrada:</div>
+              <div id="hash-key-display" class="font-mono text-purple-300 font-semibold truncate">
+                "user:25011962:carreira"</div>
+            </div>
+            <div>
+              <div class="text-zinc-400 font-sans">Hash Raw (DJB2/CRC16):</div>
+              <div id="hash-raw-display" class="font-mono text-zinc-200 font-semibold">1,829,392,104</div>
+            </div>
+            <div>
+              <div class="text-zinc-400 font-sans">Bucket Mapeado (% 16):</div>
+              <div id="hash-bucket-display" class="font-mono text-purple-400 font-bold">Bucket [8]</div>
+            </div>
+            <div>
+              <div class="text-zinc-400 font-sans">Endereço de Memória:</div>
+              <div id="hash-mem-display" class="font-mono text-emerald-400 font-semibold">0x7F4B20</div>
+            </div>
+          </div>
+
+          <!-- Resultado do Lookup -->
+          <div id="hash-lookup-result" class="mt-4 p-3 rounded-lg bg-black/40 border border-zinc-800 text-xs">
+            <!-- Preenchido via app.js -->
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         5. SEÇÃO 3: CARACTERÍSTICAS & ARQUITETURA
+         ========================================================================= -->
+    <section id="beneficios" class="py-16 sm:py-20 border-t border-zinc-800/80">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div class="max-w-3xl mb-12 text-left">
+          <span
+            class="text-xs font-mono font-semibold uppercase tracking-wider text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20">Seção
+            3</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-3">Características, Benefícios & Arquitetura
+            Interna</h2>
+          <p class="text-zinc-400 mt-2 text-sm sm:text-base leading-relaxed">
+            Como os bancos Chave-Valor atingem escalabilidade massiva, tolerância a falhas e persistência sem sacrificar
+            velocidade in-memory.
+          </p>
+        </div>
+
+        <!-- 4 Pilares Fundamentais -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 text-left">
+
+          <div class="bg-[#161922] p-5 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div
+                class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center mb-3">
+                <i data-lucide="split" class="w-5 h-5"></i>
+              </div>
+              <h4 class="font-bold text-white text-sm">1. Escalabilidade Horizontal</h4>
+              <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
+                Utiliza <strong>Sharding</strong> automático e <strong>Consistent Hashing</strong>. Quando a carga sobe,
+                novos nós são adicionados ao cluster sem interrupção de serviço.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-zinc-800/80 text-[11px] text-purple-300 font-mono">Consistent Hash
+              Ring</div>
+          </div>
+
+          <div class="bg-[#161922] p-5 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div
+                class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-3">
+                <i data-lucide="zap" class="w-5 h-5"></i>
+              </div>
+              <h4 class="font-bold text-white text-sm">2. Latência Sub-milissegundo</h4>
+              <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
+                Operando primariamente em memória RAM, o tempo de resposta é de microssegundos (<strong
+                  class="text-emerald-400">&lt; 0.5 ms</strong>), permitindo milhões de consultas por segundo.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-zinc-800/80 text-[11px] text-emerald-300 font-mono">In-Memory Engine
+            </div>
+          </div>
+
+          <div class="bg-[#161922] p-5 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div
+                class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-3">
+                <i data-lucide="boxes" class="w-5 h-5"></i>
+              </div>
+              <h4 class="font-bold text-white text-sm">3. Flexibilidade Schema-less</h4>
+              <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
+                Sem tabelas rígidas. Cada chave pode armazenar payloads com propriedades diferentes sem afetar outros
+                registros ou exigir migrações de DDL.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-zinc-800/80 text-[11px] text-indigo-300 font-mono">Dynamic Payloads
+            </div>
+          </div>
+
+          <div class="bg-[#161922] p-5 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div
+                class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center mb-3">
+                <i data-lucide="shield-check" class="w-5 h-5"></i>
+              </div>
+              <h4 class="font-bold text-white text-sm">4. Alta Disponibilidade (HA)</h4>
+              <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
+                Replicação primária-réplica com failover automático (Redis Sentinel ou Raft/Paxos no DynamoDB),
+                atingindo SLAs de 99.999% de uptime.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-zinc-800/80 text-[11px] text-cyan-300 font-mono">Auto-Failover</div>
+          </div>
+
+        </div>
+
+        <!-- CAP e Persistência RDB vs AOF -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 text-left">
+
+          <!-- Teorema CAP -->
+          <div class="bg-[#161922] p-6 rounded-2xl border border-zinc-800">
+            <h3 class="text-base font-bold text-white flex items-center gap-2 mb-3">
+              <i data-lucide="triangle-alert" class="w-4 h-4 text-amber-400"></i>
+              <span>Teorema CAP e Bancos Chave-Valor</span>
+            </h3>
+            <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+              Segundo o Teorema de Brewer, sistemas distribuídos só podem garantir simultaneamente duas das três
+              propriedades: Consistência (C), Disponibilidade (A) e Tolerância a Partições (P).
+            </p>
+            <div class="space-y-2 text-xs">
+              <div class="p-3 rounded-xl bg-zinc-900 border border-zinc-800">
+                <span class="font-mono font-bold text-purple-300">Redis Cluster (CP/AP):</span>
+                <span class="text-zinc-300 ml-1">Foco em baixa latência e consistência na partição primária com
+                  replicação assíncrona.</span>
+              </div>
+              <div class="p-3 rounded-xl bg-zinc-900 border border-zinc-800">
+                <span class="font-mono font-bold text-amber-300">AWS DynamoDB (AP Ajustável):</span>
+                <span class="text-zinc-300 ml-1">Leituras eventualmente consistentes por padrão, com opção de forte
+                  consistência.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Persistência RDB vs AOF -->
+          <div class="bg-[#161922] p-6 rounded-2xl border border-zinc-800">
+            <h3 class="text-base font-bold text-white flex items-center gap-2 mb-3">
+              <i data-lucide="hard-drive" class="w-4 h-4 text-purple-400"></i>
+              <span>Persistência In-Memory: RDB vs AOF</span>
+            </h3>
+            <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+              Mesmo mantendo dados em RAM, o Redis utiliza dois mecanismos robustos para garantir durabilidade contra
+              falhas de energia:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div class="p-3 rounded-xl bg-zinc-900 border border-zinc-800">
+                <div class="font-bold text-purple-300 mb-1">RDB (Snapshots)</div>
+                <p class="text-zinc-400 text-[11px] leading-relaxed">
+                  Fotografias pontuais da memória salvas em disco em intervalos configurados (ex: a cada 5 min). Arquivo
+                  compacto e restauração rápida.
+                </p>
+              </div>
+              <div class="p-3 rounded-xl bg-zinc-900 border border-zinc-800">
+                <div class="font-bold text-indigo-300 mb-1">AOF (Append Only)</div>
+                <p class="text-zinc-400 text-[11px] leading-relaxed">
+                  Log contínuo gravando cada comando de escrita (SET, DEL) em disco. Máxima durabilidade com perda
+                  máxima de 1 segundo de dados.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         6. SEÇÃO 4: CASOS DE USO E MERCADO
+         ========================================================================= -->
+    <section id="casos-de-uso" class="py-16 sm:py-20 border-t border-zinc-800/80 bg-[#0c0e14]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div class="max-w-3xl mb-12 text-left">
+          <span
+            class="text-xs font-mono font-semibold uppercase tracking-wider text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20">Seção
+            4</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-3">Casos de Uso no Mercado e Grandes Empresas
+          </h2>
+          <p class="text-zinc-400 mt-2 text-sm sm:text-base leading-relaxed">
+            Onde o modelo Chave-Valor é insubstituível na engenharia de sistemas modernos de alta escala planetária.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 text-left">
+
+          <div class="bg-[#161922] p-6 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div class="text-purple-400 text-xl mb-3"><i data-lucide="shield" class="w-6 h-6"></i></div>
+              <h4 class="font-bold text-white text-base">Gestão de Sessão & Auth</h4>
+              <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
+                Armazenamento de tokens JWT e sessões de usuários ativos. Com o recurso nativo de <strong>TTL automático
+                  (EXPIRE)</strong>, sessões expiradas são limpas sem consultas lentas em disco.
+              </p>
+            </div>
+            <div
+              class="mt-4 pt-3 border-t border-zinc-800 font-mono text-[11px] text-purple-300 bg-black/40 p-2 rounded">
+              SET session:tok_xyz user_id EX 3600
+            </div>
+          </div>
+
+          <div class="bg-[#161922] p-6 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div class="text-emerald-400 text-xl mb-3"><i data-lucide="shopping-cart" class="w-6 h-6"></i></div>
+              <h4 class="font-bold text-white text-base">Carrinhos de Compras</h4>
+              <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
+                A <strong>Amazon</strong> utiliza o AWS DynamoDB para armazenar carrinhos de milhões de usuários
+                simultâneos no Prime Day com acesso sub-milissegundo sob a chave <code
+                  class="text-emerald-300">cart:user_id</code>.
+              </p>
+            </div>
+            <div
+              class="mt-4 pt-3 border-t border-zinc-800 font-mono text-[11px] text-emerald-300 bg-black/40 p-2 rounded">
+              HSET cart:101 item_id "MacBook M3"
+            </div>
+          </div>
+
+          <div class="bg-[#161922] p-6 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div class="text-amber-400 text-xl mb-3"><i data-lucide="trophy" class="w-6 h-6"></i></div>
+              <h4 class="font-bold text-white text-base">Rankings & Leaderboards</h4>
+              <p class="text-xs text-zinc-400 mt-2 leading-relaxed">
+                Jogos online e plataformas competitivas utilizam <strong>Sorted Sets (ZADD / ZREVRANGE)</strong> do
+                Redis para classificar milhões de pontuações em tempo real com complexidade O(log N).
+              </p>
+            </div>
+            <div
+              class="mt-4 pt-3 border-t border-zinc-800 font-mono text-[11px] text-amber-300 bg-black/40 p-2 rounded">
+              ZADD ranking 9850 "user:melissa"
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Adoção por Empresas Globais -->
+        <div class="bg-[#161922] p-6 sm:p-8 rounded-2xl border border-zinc-800 text-left">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-purple-400 mb-6 flex items-center gap-2">
+            <i data-lucide="building" class="w-4 h-4"></i> Adoção em Produção por Gigantes da Tecnologia
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            <div class="p-4 rounded-xl bg-zinc-900/90 border border-zinc-800">
+              <strong class="text-sm text-white block mb-1">Twitter / X</strong>
+              <p class="text-zinc-400 leading-relaxed">Clusters de Redis para timeline feeds e contadores instantâneos
+                de visualizações.</p>
+            </div>
+            <div class="p-4 rounded-xl bg-zinc-900/90 border border-zinc-800">
+              <strong class="text-sm text-white block mb-1">Amazon DynamoDB</strong>
+              <p class="text-zinc-400 leading-relaxed">Mais de 100 milhões de requisições por segundo durante a Black
+                Friday global.</p>
+            </div>
+            <div class="p-4 rounded-xl bg-zinc-900/90 border border-zinc-800">
+              <strong class="text-sm text-white block mb-1">GitHub</strong>
+              <p class="text-zinc-400 leading-relaxed">Rate limiting de chamadas de API e gestão de filas de jobs em
+                background com Redis.</p>
+            </div>
+            <div class="p-4 rounded-xl bg-zinc-900/90 border border-zinc-800">
+              <strong class="text-sm text-white block mb-1">Uber</strong>
+              <p class="text-zinc-400 leading-relaxed">Caching de geolocalização e matching dinâmico de motoristas e
+                passageiros.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         7. SEÇÃO 5: SIMULADOR PRÁTICO & ANÁLISE DA PESQUISA FECAP
+         ========================================================================= -->
+    <section id="demonstracao" class="py-16 sm:py-20 border-t border-zinc-800/80">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div class="max-w-3xl mb-8 text-left">
+          <span
+            class="text-xs font-mono font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Seção
+            5 - Prática & Big Data</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-3">Simulador Key-Value & Análise da Pesquisa</h2>
+          <p class="text-zinc-400 mt-2 text-sm sm:text-base leading-relaxed">
+            Aplicação prática das 72 respostas coletadas no CSV <strong class="text-purple-300">"PLANEJAMENETO DO FUTURO
+              E CARREIRA"</strong> com terminal estilo Redis e visualizadores em tempo real.
+          </p>
+        </div>
+
+        <!-- Barra de Ações Rápidas do Dataset -->
+        <div
+          class="bg-[#161922] p-4 sm:p-5 rounded-2xl border border-zinc-800 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-left">
+          <div>
+            <span class="text-xs font-mono text-purple-400 font-bold flex items-center gap-2">
+              <i data-lucide="database" class="w-4 h-4"></i> Estrutura Modelada da Pesquisa Acadêmica
+            </span>
+            <p class="text-xs text-zinc-300 mt-1">
+              Chave principal: <code class="text-purple-300 font-mono">user:&lt;RA&gt;:carreira</code> | Hashes: <code
+                class="text-indigo-300 font-mono">user:&lt;RA&gt;:perfil</code>
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="reloadDataset()"
+              class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition flex items-center gap-1.5 focus:ring-2 focus:ring-purple-500">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              <span>Recarregar 72 Respostas</span>
+            </button>
+            <button onclick="exportDatabaseDump()"
+              class="px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs transition flex items-center gap-1.5 focus:ring-2 focus:ring-purple-500">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Exportar Dump JSON</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- =====================================================================
+             TERMINAL WEB INTERATIVO ESTILO REDIS
+             ===================================================================== -->
+        <div id="terminal-container"
+          class="rounded-2xl border border-zinc-800 overflow-hidden mb-10 text-left bg-[#0c0e14]">
+
+          <!-- Terminal Header -->
+          <div class="bg-zinc-900/90 px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
+              <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
+              <span class="ml-2 font-mono text-xs text-zinc-300 font-semibold">redis-cli --port 6379 (Simulador
+                FECAP)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span
+                class="text-[10px] font-mono text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
+                DB0: 72 alunos
+              </span>
+              <button onclick="executeRedisCommand('CLEAR'); document.getElementById('terminal-output').innerHTML='';"
+                title="Limpar Terminal" class="text-zinc-400 hover:text-white text-xs px-2 py-1">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Terminal Output Area -->
+          <div id="terminal-output" class="terminal-body p-4 terminal-output">
+            <div class="terminal-line text-zinc-400">
+              * Conectado ao simulador Redis NoSQL (FECAP Big Data 2026)<br>
+              * Digite <span class="text-purple-400 font-bold">HELP</span> para listar comandos ou clique nos atalhos
+              rápidos abaixo.<br>
+              * 72 respostas de alunos de IA, Cibersegurança e Informática carregadas em memória RAM.
+            </div>
+          </div>
+
+          <!-- Terminal Input Prompt -->
+          <form id="terminal-form" onsubmit="event.preventDefault(); submitTerminalCommand();"
+            class="bg-zinc-900/90 p-2.5 border-t border-zinc-800 flex items-center gap-2">
+            <span class="text-purple-400 font-mono font-bold text-xs pl-2 flex-shrink-0">redis-fecap:6379&gt;</span>
+            <input type="text" id="terminal-input" value="GET user:25011962:carreira" autocomplete="off"
+              spellcheck="false" placeholder="Digite um comando (ex: GET user:25011962:carreira ou KEYS *)..."
+              class="flex-1 bg-transparent border-0 text-zinc-100 font-mono text-xs focus:outline-none placeholder:text-zinc-600">
+            <button type="button" onclick="submitTerminalCommand()"
+              class="px-4 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-mono text-xs font-semibold transition focus:ring-2 focus:ring-purple-500 flex items-center gap-1.5 flex-shrink-0 cursor-pointer">
+              <i data-lucide="play" class="w-3.5 h-3.5"></i>
+              <span>Executar</span>
+            </button>
+          </form>
+
+          <!-- Barra de Seleção de Usuários da Pesquisa & Atalhos Rápidos -->
+          <div
+            class="bg-zinc-950/90 px-4 py-3 border-t border-zinc-800/80 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 text-xs">
+
+            <!-- Menu para Selecionar Usuário da Pesquisa -->
+            <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 flex-1 min-w-[280px]">
+              <label for="user-select-quick"
+                class="text-purple-400 font-semibold text-[11px] flex items-center gap-1.5 flex-shrink-0">
+                <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                <span>Selecionar Usuário da Pesquisa:</span>
+              </label>
+              <select id="user-select-quick" onchange="onUserSelectChange(this.value)"
+                class="flex-1 min-w-[200px] bg-zinc-900 border border-zinc-700/80 text-zinc-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono">
+                <!-- Populado automaticamente pelo app.js com os 72 alunos -->
+              </select>
+              <button type="button" onclick="executeSelectedUser('GET')" title="Executar GET do aluno selecionado"
+                class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-mono text-[11px] font-semibold transition flex items-center gap-1 flex-shrink-0 shadow-sm focus:ring-2 focus:ring-purple-500 cursor-pointer">
+                <i data-lucide="play" class="w-3 h-3"></i>
+                <span>Executar GET</span>
+              </button>
+              <button type="button" onclick="executeSelectedUser('HGETALL')" title="Executar HGETALL do perfil do aluno"
+                class="px-2.5 py-1.5 rounded-lg bg-indigo-600/60 hover:bg-indigo-600 text-indigo-200 hover:text-white font-mono text-[11px] font-semibold transition flex items-center gap-1 flex-shrink-0 focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+                <span>HGETALL</span>
+              </button>
+            </div>
+
+            <!-- Chips de Comandos Auxiliares -->
+            <div class="flex flex-wrap items-center gap-1.5 pt-2 md:pt-0 border-t md:border-t-0 border-zinc-800/60">
+              <span class="text-zinc-500 font-semibold text-[11px]">Comandos:</span>
+              <button type="button" onclick="runQuickCommand('KEYS user:*:carreira')"
+                class="px-2 py-1 rounded bg-zinc-900 hover:bg-zinc-800 text-purple-300 font-mono text-[11px] border border-zinc-800 transition">
+                KEYS user:*
+              </button>
+              <button type="button" onclick="runQuickCommand('INFO')"
+                class="px-2 py-1 rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-300 font-mono text-[11px] border border-zinc-800 transition">
+                INFO
+              </button>
+              <button type="button" onclick="runQuickCommand('BENCHMARK 500')"
+                class="px-2 py-1 rounded bg-zinc-900 hover:bg-zinc-800 text-emerald-300 font-mono text-[11px] border border-zinc-800 transition">
+                BENCHMARK 500
+              </button>
+              <button type="button" onclick="runQuickCommand('HELP')"
+                class="px-2 py-1 rounded bg-zinc-900 hover:bg-zinc-800 text-zinc-400 font-mono text-[11px] border border-zinc-800 transition">
+                HELP
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- =====================================================================
+             STORE EXPLORER (INSPEÇÃO VISUAL DE CHAVES)
+             ===================================================================== -->
+        <div class="bg-[#161922] p-6 rounded-2xl border border-zinc-800 mb-10 text-left">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <i data-lucide="layout-grid" class="w-5 h-5 text-purple-400"></i>
+                <span>Visual Store Explorer (Inspeção em Memória)</span>
+              </h3>
+              <p class="text-xs text-zinc-400 mt-1">
+                Explore os pares chave-valor gravados, filtre por curso técnico ou pesquise por RA e Nome.
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <span id="store-total-badge"
+                class="px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20 font-mono text-xs font-semibold">
+                72 chaves ativas
+              </span>
+              <button onclick="openAddKeyModal()"
+                class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition flex items-center gap-1.5 focus:ring-2 focus:ring-purple-500">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Inserir Registro (SET)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Barra de Busca e Filtros -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+            <div class="sm:col-span-2 relative">
+              <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400"></i>
+              <input type="text" id="store-search-input" placeholder="Buscar por RA, nome, curso ou palavra-chave..."
+                class="w-full pl-10 pr-4 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500">
+            </div>
+            <div>
+              <select id="course-filter-select"
+                class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <option value="todos">Todos os Cursos Técnicos</option>
+                <option value="Inteligência Artificial">Inteligência Artificial</option>
+                <option value="Cibersegurança">Cibersegurança</option>
+                <option value="Informática">Informática</option>
+                <option value="Pleno">Ensino Médio Pleno</option>
+                <option value="Multimidia">Multimídia</option>
+                <option value="Publicidade">Publicidade</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Grid de Chaves Populadas Dinamicamente -->
+          <div id="store-keys-container"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[500px] overflow-y-auto pr-1">
+            <!-- Injetado via app.js -->
+          </div>
+        </div>
+
+        <!-- =====================================================================
+             LIVE BENCHMARK SUITE
+             ===================================================================== -->
+        <div class="bg-[#161922] p-6 rounded-2xl border border-zinc-800 mb-10 text-left">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="max-w-xl">
+              <div
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-[11px] font-semibold mb-2">
+                <i data-lucide="gauge" class="w-3.5 h-3.5"></i>
+                <span>Teste de Estresse em Memória</span>
+              </div>
+              <h3 class="text-base font-bold text-white">Live In-Browser Benchmark Suite</h3>
+              <p class="text-xs text-zinc-400 mt-1 leading-relaxed">
+                Dispare 1.000 operações consecutivas de escrita (SET) e leitura (GET) para comprovar a performance
+                sub-milissegundo da busca O(1).
+              </p>
+            </div>
+            <div>
+              <button id="run-benchmark-btn" onclick="runInteractiveBenchmark(1000)"
+                class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition flex items-center gap-2 focus:ring-2 focus:ring-emerald-500">
+                <i data-lucide="zap" class="w-4 h-4"></i>
+                <span>Executar Benchmark (1.000 ops)</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="benchmark-results"
+            class="hidden mt-6 pt-6 border-t border-zinc-800 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+            <div class="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
+              <div id="bench-throughput" class="text-xl font-mono font-extrabold text-emerald-400">---</div>
+              <div class="text-[10px] text-zinc-400 uppercase tracking-wider mt-1">Throughput (Vazão)</div>
+            </div>
+            <div class="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
+              <div id="bench-total-time" class="text-xl font-mono font-extrabold text-purple-400">---</div>
+              <div class="text-[10px] text-zinc-400 uppercase tracking-wider mt-1">Tempo Total</div>
+            </div>
+            <div class="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
+              <div id="bench-avg-lat" class="text-xl font-mono font-extrabold text-cyan-400">---</div>
+              <div class="text-[10px] text-zinc-400 uppercase tracking-wider mt-1">Latência Média</div>
+            </div>
+            <div class="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
+              <div id="bench-p99-lat" class="text-xl font-mono font-extrabold text-amber-400">---</div>
+              <div class="text-[10px] text-zinc-400 uppercase tracking-wider mt-1">Latência P99</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =====================================================================
+             DASHBOARDS DA PESQUISA (CHART.JS)
+             ===================================================================== -->
+        <div class="text-left space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <i data-lucide="pie-chart" class="w-4 h-4 text-purple-400"></i>
+                <span>Dashboards Analíticos da Pesquisa (72 Respondentes)</span>
+              </h3>
+              <p class="text-xs text-zinc-400 mt-0.5">
+                Dados agregados via contadores <code class="text-purple-300 font-mono">stat:curso:*</code> modelados na
+                base chave-valor.
+              </p>
+            </div>
+            <span class="text-[11px] font-mono text-zinc-500">Fonte: PLANEJAMENETO DO FUTURO E CARREIRA.csv</span>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <div class="bg-[#161922] p-5 rounded-2xl border border-zinc-800">
+              <h4 class="text-xs font-bold text-zinc-200 mb-1">1. Distribuição de Cursos Técnicos</h4>
+              <p class="text-[11px] text-zinc-400 mb-4">Predomínio em Inteligência Artificial (30.6%) e Cibersegurança
+                (22.2%)</p>
+              <div class="h-60 relative">
+                <canvas id="chart-cursos"></canvas>
+              </div>
+            </div>
+
+            <div class="bg-[#161922] p-5 rounded-2xl border border-zinc-800">
+              <h4 class="text-xs font-bold text-zinc-200 mb-1">2. Objetivo Principal Pós-Formação</h4>
+              <p class="text-[11px] text-zinc-400 mb-4">43.1% visam ingressar diretamente na faculdade na mesma área do
+                curso</p>
+              <div class="h-60 relative">
+                <canvas id="chart-objetivos"></canvas>
+              </div>
+            </div>
+
+            <div class="bg-[#161922] p-5 rounded-2xl border border-zinc-800">
+              <h4 class="text-xs font-bold text-zinc-200 mb-1">3. Pretensão de Trabalhar no Exterior</h4>
+              <p class="text-[11px] text-zinc-400 mb-4">97.2% dos estudantes possuem abertura para empresas
+                internacionais</p>
+              <div class="h-60 relative">
+                <canvas id="chart-exterior"></canvas>
+              </div>
+            </div>
+
+            <div class="bg-[#161922] p-5 rounded-2xl border border-zinc-800">
+              <h4 class="text-xs font-bold text-zinc-200 mb-1">4. Horas de Dedicação Semanal Extracurricular</h4>
+              <p class="text-[11px] text-zinc-400 mb-4">Tempo investido semanalmente em estudos e projetos
+                extracurriculares</p>
+              <div class="h-60 relative">
+                <canvas id="chart-horas"></canvas>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         8. SEÇÃO 6: COMPARATIVO GERAL DAS 5 FAMÍLIAS
+         ========================================================================= -->
+    <section id="comparacao" class="py-16 sm:py-20 border-t border-zinc-800/80 bg-[#0c0e14]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div class="max-w-3xl mb-12 text-left">
+          <span
+            class="text-xs font-mono font-semibold uppercase tracking-wider text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20">Seção
+            6</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-3">Comparativo Completo: As 5 Famílias de Bancos
+            de Dados</h2>
+          <p class="text-zinc-400 mt-2 text-sm sm:text-base leading-relaxed">
+            Trade-offs de engenharia entre Chave-Valor, Relacional, Documentos, Família de Colunas e Grafos.
+          </p>
+        </div>
+
+        <div class="bg-[#161922] rounded-2xl overflow-hidden border border-zinc-800 text-left">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs min-w-[700px]">
+              <thead class="bg-zinc-900/90 text-zinc-300 uppercase font-mono text-[11px] border-b border-zinc-800">
+                <tr>
+                  <th class="p-3.5">Família</th>
+                  <th class="p-3.5">Exemplos</th>
+                  <th class="p-3.5">Modelo de Dados</th>
+                  <th class="p-3.5">Escalabilidade</th>
+                  <th class="p-3.5 text-purple-300">Cenário Ideal (Sweet Spot)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-zinc-800 text-zinc-300">
+                <tr class="bg-purple-950/20">
+                  <td class="p-3.5 font-bold text-purple-300 flex items-center gap-1.5">
+                    <i data-lucide="key" class="w-4 h-4 text-purple-400"></i>
+                    <span>Chave-Valor (Key-Value)</span>
+                  </td>
+                  <td class="p-3.5 font-mono text-white">Redis, DynamoDB, Memcached</td>
+                  <td class="p-3.5">Pares Chave &rarr; Valor (O(1))</td>
+                  <td class="p-3.5 text-emerald-400 font-semibold">Horizontal massiva</td>
+                  <td class="p-3.5 text-purple-200">Sessões, caching, carrinhos, leaderboards e contadores rápidos.</td>
+                </tr>
+                <tr>
+                  <td class="p-3.5 font-bold text-white flex items-center gap-1.5">
+                    <i data-lucide="table" class="w-4 h-4 text-blue-400"></i>
+                    <span>Relacional (SQL)</span>
+                  </td>
+                  <td class="p-3.5 font-mono text-zinc-300">PostgreSQL, MySQL, Oracle</td>
+                  <td class="p-3.5">Tabelas normalizadas e Foreign Keys</td>
+                  <td class="p-3.5 text-amber-400 font-semibold">Vertical (Scale-up)</td>
+                  <td class="p-3.5 text-zinc-300">Sistemas bancários, contábeis e ERPs com transações ACID estritas.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="p-3.5 font-bold text-white flex items-center gap-1.5">
+                    <i data-lucide="file-text" class="w-4 h-4 text-emerald-400"></i>
+                    <span>Documentos</span>
+                  </td>
+                  <td class="p-3.5 font-mono text-zinc-300">MongoDB, Couchbase, Firestore</td>
+                  <td class="p-3.5">Documentos BSON / JSON aninhados</td>
+                  <td class="p-3.5 text-emerald-400 font-semibold">Horizontal (Sharding)</td>
+                  <td class="p-3.5 text-zinc-300">Catálogos de produtos, blogs, CMS e perfis de usuário ricos.</td>
+                </tr>
+                <tr>
+                  <td class="p-3.5 font-bold text-white flex items-center gap-1.5">
+                    <i data-lucide="columns-3" class="w-4 h-4 text-cyan-400"></i>
+                    <span>Família de Colunas</span>
+                  </td>
+                  <td class="p-3.5 font-mono text-zinc-300">Cassandra, ScyllaDB, HBase</td>
+                  <td class="p-3.5">Linhas com colunas esparsas agrupadas</td>
+                  <td class="p-3.5 text-emerald-400 font-semibold">Horizontal extrema</td>
+                  <td class="p-3.5 text-zinc-300">Telemetria IoT, logs de auditoria e Big Data de escrita massiva.</td>
+                </tr>
+                <tr>
+                  <td class="p-3.5 font-bold text-white flex items-center gap-1.5">
+                    <i data-lucide="share-2" class="w-4 h-4 text-rose-400"></i>
+                    <span>Grafos</span>
+                  </td>
+                  <td class="p-3.5 font-mono text-zinc-300">Neo4j, Amazon Neptune</td>
+                  <td class="p-3.5">Nós, arestas e propriedades</td>
+                  <td class="p-3.5 text-amber-400 font-semibold">Complexa distribuída</td>
+                  <td class="p-3.5 text-zinc-300">Redes sociais, detecção de fraude e motores de recomendação.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         9. SEÇÃO 7: CONCLUSÃO E FUTURAS TENDÊNCIAS
+         ========================================================================= -->
+    <section id="conclusao" class="py-16 sm:py-20 border-t border-zinc-800/80">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div class="max-w-3xl mb-12 text-left">
+          <span
+            class="text-xs font-mono font-semibold uppercase tracking-wider text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20">Seção
+            7</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-3">Conclusão e o Futuro dos Bancos Chave-Valor
+          </h2>
+          <p class="text-zinc-400 mt-2 text-sm sm:text-base leading-relaxed">
+            Balanço de vantagens operacionais, trade-offs de engenharia e as novas fronteiras com Inteligência
+            Artificial e hardware moderno.
+          </p>
+        </div>
+
+        <!-- Prós e Contras -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 text-left">
+
+          <div class="bg-[#161922] p-6 rounded-2xl border border-zinc-800">
+            <h4 class="text-sm font-bold text-emerald-400 mb-3 flex items-center gap-2">
+              <i data-lucide="thumbs-up" class="w-4 h-4"></i> Vantagens do Modelo Chave-Valor
+            </h4>
+            <ul class="space-y-2.5 text-xs text-zinc-300">
+              <li class="flex items-start gap-2">
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+                <span><strong>Velocidade Incomparável:</strong> Tempos de resposta em microssegundos com busca O(1)
+                  in-memory.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+                <span><strong>Simplicidade Operacional:</strong> Sem custo de parsing SQL nem planos de execução
+                  elaborados.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+                <span><strong>Escalabilidade Previsível:</strong> Sharding horizontal linear via Consistent
+                  Hashing.</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="bg-[#161922] p-6 rounded-2xl border border-zinc-800">
+            <h4 class="text-sm font-bold text-rose-400 mb-3 flex items-center gap-2">
+              <i data-lucide="alert-triangle" class="w-4 h-4"></i> Limitações e Desafios
+            </h4>
+            <ul class="space-y-2.5 text-xs text-zinc-300">
+              <li class="flex items-start gap-2">
+                <i data-lucide="x-circle" class="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5"></i>
+                <span><strong>Sem Consultas Ad-Hoc:</strong> Difícil filtrar por atributos internos sem conhecer a chave
+                  primária.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i data-lucide="x-circle" class="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5"></i>
+                <span><strong>Sem JOINs Nativos:</strong> Agregações entre entidades devem ser resolvidas no código de
+                  aplicação.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i data-lucide="x-circle" class="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5"></i>
+                <span><strong>Custo de Memória RAM:</strong> Memória primária é financeiramente mais cara que discos
+                  SSD/NVMe.</span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+
+        <!-- Tendências Futuras -->
+        <div class="bg-[#161922] p-6 sm:p-8 rounded-2xl border border-zinc-800 text-left">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-purple-400 mb-6 flex items-center gap-2">
+            <i data-lucide="sparkles" class="w-4 h-4"></i> Tendências e Fronteiras Tecnológicas
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+            <div class="p-4 rounded-xl bg-zinc-900/90 border border-zinc-800">
+              <strong class="text-sm text-white block mb-1">Vector Search para IA (RAG)</strong>
+              <p class="text-zinc-400 leading-relaxed">
+                Extensões como o <strong>RedisVL</strong> combinam a velocidade in-memory da chave-valor com índices
+                vetoriais para busca semântica em LLMs.
+              </p>
+            </div>
+            <div class="p-4 rounded-xl bg-zinc-900/90 border border-zinc-800">
+              <strong class="text-sm text-white block mb-1">Memória Persistente (CXL & NVMe)</strong>
+              <p class="text-zinc-400 leading-relaxed">
+                Barramentos <strong>Compute Express Link (CXL)</strong> unem a velocidade da memória RAM ao custo e
+                densidade de armazenamento sólido.
+              </p>
+            </div>
+            <div class="p-4 rounded-xl bg-zinc-900/90 border border-zinc-800">
+              <strong class="text-sm text-white block mb-1">Edge KV Serverless</strong>
+              <p class="text-zinc-400 leading-relaxed">
+                Soluções distribuídas nas bordas (ex: <strong>Cloudflare Workers KV</strong> e <strong>Upstash</strong>)
+                com precificação sob demanda e latência global baixa.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =========================================================================
+       10. RODAPÉ ACADÊMICO
+       ========================================================================= -->
+  <footer class="py-12 border-t border-zinc-800/80 bg-[#0a0c10] relative z-10 text-left">
+    <div
+      class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-zinc-400">
+
+      <div class="flex items-center gap-3">
+        <div
+          class="w-8 h-8 rounded-lg bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+          <i data-lucide="database" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <div class="text-zinc-200 font-bold">Seminário Acadêmico de Big Data & NoSQL Key-Value</div>
+          <div class="text-zinc-500">FECAP - Fundação Escola de Comércio Álvares Penteado &bull; 2026</div>
+        </div>
+      </div>
+
+      <div class="text-center md:text-right">
+        <div>Apresentado por <strong>Beatriz Fernandez, Manuella Moretti, Raíssa Ramos e Melissa Nunes (RA:
+            25011962)</strong></div>
+        <div class="text-zinc-500 text-[11px] mt-0.5">Técnico em Inteligência Artificial &bull; 2° Ano</div>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- =========================================================================
+       11. MODAIS INTERATIVOS
+       ========================================================================= -->
+
+  <!-- Modal: Inspecionar Chave / JSON -->
+  <div id="key-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
+    <div
+      class="bg-[#161922] w-full max-w-2xl rounded-2xl p-6 border border-zinc-800 relative max-h-[85vh] flex flex-col text-left">
+      <div class="flex items-center justify-between pb-3 border-b border-zinc-800">
+        <div>
+          <span class="text-[10px] uppercase font-mono text-purple-400 font-bold">Inspeção de Chave</span>
+          <h3 id="modal-key-title" class="text-base font-mono font-bold text-white truncate">user:25011962:carreira</h3>
+        </div>
+        <button onclick="closeKeyModal()"
+          class="w-8 h-8 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white flex items-center justify-center transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div id="modal-ttl-info" class="text-xs my-2 font-mono">
+        <!-- Preenchido via app.js -->
+      </div>
+
+      <div
+        class="flex-1 overflow-y-auto my-2 p-4 rounded-xl bg-[#0d0f15] border border-zinc-800 font-mono text-xs text-purple-200">
+        <pre id="modal-json-viewer" class="whitespace-pre-wrap"></pre>
+      </div>
+
+      <div class="pt-3 border-t border-zinc-800 flex justify-end">
+        <button onclick="closeKeyModal()"
+          class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition focus:ring-2 focus:ring-purple-500">
+          Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Inserir Nova Chave (SET) -->
+  <div id="add-key-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
+    <div class="bg-[#161922] w-full max-w-md rounded-2xl p-6 border border-zinc-800 relative flex flex-col text-left">
+      <div class="flex items-center justify-between pb-3 border-b border-zinc-800 mb-4">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-purple-400"></i> Inserir Registro (SET)
+        </h3>
+        <button onclick="closeAddKeyModal()"
+          class="w-7 h-7 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white flex items-center justify-center transition">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-zinc-300 font-semibold mb-1">Chave (Key):</label>
+          <input type="text" id="new-key-name" placeholder="Ex: user:25099999:carreira"
+            class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-100 font-mono focus:outline-none focus:ring-2 focus:ring-purple-500">
+        </div>
+
+        <div>
+          <label class="block text-zinc-300 font-semibold mb-1">Valor (String ou JSON):</label>
+          <textarea id="new-key-value" rows="4"
+            placeholder='{"nome": "Novo Aluno", "curso": "Inteligência Artificial", "objetivo": "Ciência de Dados"}'
+            class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-100 font-mono focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-zinc-300 font-semibold mb-1">TTL Opcional em Segundos (EXPIRE):</label>
+          <input type="number" id="new-key-ttl" placeholder="Ex: 60 (vazio para infinito)"
+            class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-100 font-mono focus:outline-none focus:ring-2 focus:ring-purple-500">
+        </div>
+      </div>
+
+      <div class="mt-5 pt-3 border-t border-zinc-800 flex justify-end gap-2 text-xs">
+        <button onclick="closeAddKeyModal()"
+          class="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition">
+          Cancelar
+        </button>
+        <button onclick="saveNewKey()"
+          class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold transition focus:ring-2 focus:ring-purple-500">
+          Salvar Chave (SET)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Feedback -->
+  <div id="toast"
+    class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-zinc-900 text-zinc-100 border border-purple-500/30 shadow-2xl text-xs font-semibold flex items-center gap-2 transform translate-y-4 opacity-0 pointer-events-none transition-all duration-300">
+    <!-- Mensagem injetada via app.js -->
+  </div>
+
+  <!-- Scripts: Dataset e Lógica da Aplicação -->
+  <script src="pesquisa_data.js"></script>
+  <script src="app.js"></script>
+
+  <!-- Inicialização dos Ícones Lucide e Componentes -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+      if (typeof populateUserQuickSelect === 'function') {
+        populateUserQuickSelect();
+      }
+    });
+  </script>
+
+</body>
+
+</html>
