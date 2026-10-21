@@ -263,6 +263,16 @@
               <i data-lucide="terminal" class="w-3.5 h-3.5 text-purple-400"></i>
               <span>Simulador & Pesquisa</span>
             </a>
+            <a href="#meu-banco-de-dados"
+              class="nav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:text-white hover:bg-zinc-800/70 transition">
+              <i data-lucide="database" class="w-3.5 h-3.5 text-red-400"></i>
+              <span>Meu Banco de Dados</span>
+            </a>
+            <a href="#respostas-google-forms"
+              class="nav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:text-white hover:bg-zinc-800/70 transition">
+              <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>Respostas Google Forms</span>
+            </a>
             <a href="#comparacao"
               class="nav-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs hover:text-white hover:bg-zinc-800/70 transition">
               <i data-lucide="columns-3" class="w-3.5 h-3.5 text-purple-400"></i>
@@ -287,6 +297,15 @@
 
       <!-- Botões de Ação à Direita -->
       <div class="flex items-center gap-2 flex-shrink-0">
+
+        <!-- Botão Oficial: Acessar Redis Cloud -->
+        <a href="https://cloud.redis.io/" target="_blank" rel="noopener noreferrer"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-red-600/20 to-orange-600/20 hover:from-red-600 hover:to-orange-600 text-red-200 hover:text-white border border-red-500/40 hover:border-red-500 flex items-center gap-1.5 transition-all duration-200 shadow-sm shadow-red-500/10"
+          title="Abrir o painel oficial de administração do Redis Cloud em nova aba">
+          <i class="fa-solid fa-server text-red-400 group-hover:text-white"></i>
+          <span class="font-bold">Acessar Redis Cloud</span>
+          <i data-lucide="external-link" class="w-3 h-3 text-red-300"></i>
+        </a>
 
         <!-- Botão Modo Apresentação -->
         <button onclick="togglePresentationMode()" title="Modo Apresentação (Tela Cheia)"
@@ -333,9 +352,19 @@
         <span class="text-[10px] uppercase font-mono font-bold text-zinc-500 tracking-wider">Prática & Análise</span>
         <div class="mt-1 space-y-1 pl-2">
           <a href="#demonstracao" class="nav-link block py-1.5 text-purple-400 font-semibold">Simulador & Pesquisa</a>
+          <a href="#meu-banco-de-dados" class="nav-link block py-1.5 text-red-400 font-semibold">Meu Banco de Dados (Redis Cloud)</a>
+          <a href="#respostas-google-forms" class="nav-link block py-1.5 text-emerald-400 font-semibold">Respostas Google Forms</a>
           <a href="#comparacao" class="nav-link block py-1.5 text-zinc-300 hover:text-purple-400">Comparativo</a>
           <a href="#conclusao" class="nav-link block py-1.5 text-zinc-300 hover:text-purple-400">Conclusão</a>
         </div>
+      </div>
+      <div class="pt-2 border-t border-zinc-800">
+        <a href="https://cloud.redis.io/" target="_blank" rel="noopener noreferrer"
+          class="w-full py-2 px-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold flex items-center justify-center gap-2">
+          <i class="fa-solid fa-server"></i>
+          <span>Acessar Redis Cloud</span>
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+        </a>
       </div>
     </div>
   </header>
@@ -1450,7 +1479,348 @@
     </section>
 
     <!-- =========================================================================
-         8. SEÇÃO 6: COMPARATIVO GERAL DAS 5 FAMÍLIAS
+         7. SEÇÃO: MEU BANCO DE DADOS (REDIS CLOUD)
+         ========================================================================= -->
+    <section id="meu-banco-de-dados" class="py-16 sm:py-20 border-t border-zinc-800/80 bg-[#0c0e14]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Header da Seção -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 text-left">
+          <div class="max-w-3xl">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-xs font-mono font-semibold uppercase tracking-wider text-red-400 bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20">
+                Integração Nuvem
+              </span>
+              <span id="redis-badge-status" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-800 text-zinc-400 border border-zinc-700">
+                <span class="w-2 h-2 rounded-full bg-zinc-500" id="redis-status-dot"></span>
+                <span id="redis-status-text">Verificando...</span>
+              </span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Meu Banco de Dados</h2>
+            <p class="text-zinc-400 mt-2 text-sm sm:text-base leading-relaxed">
+              Painel de telemetria e estado da conexão em tempo real com o cluster oficial do <strong>Redis Cloud</strong>.
+            </p>
+          </div>
+
+          <!-- Botões de Ação do Banco -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <a href="https://cloud.redis.io/" target="_blank" rel="noopener noreferrer"
+              class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-semibold text-xs shadow-lg shadow-red-600/20 flex items-center gap-2 transition focus:ring-2 focus:ring-red-500"
+              title="Abrir o painel oficial de administração do Redis Cloud em uma nova aba">
+              <i class="fa-solid fa-server"></i>
+              <span>Acessar Redis Cloud</span>
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            </a>
+
+            <button onclick="checkRedisStatus(true)" id="btn-refresh-redis-status"
+              class="px-3.5 py-2.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700/60 text-xs font-semibold flex items-center gap-2 transition"
+              title="Forçar nova checagem de ping e status com o backend">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5" id="icon-refresh-status"></i>
+              <span>Testar Conexão</span>
+            </button>
+
+            <button onclick="toggleConnectionGuideModal()"
+              class="px-3.5 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-800 text-xs font-medium flex items-center gap-1.5 transition"
+              title="Ver instruções para configurar o host e porta no .env">
+              <i data-lucide="help-circle" class="w-3.5 h-3.5 text-purple-400"></i>
+              <span>Guia de Setup</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Banner de Estado da Conexão Dinâmico -->
+        <div id="redis-status-banner" class="mb-8 p-4 rounded-2xl border transition-all duration-300 bg-zinc-900/50 border-zinc-800 text-zinc-300">
+          <div class="flex items-start sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div id="redis-status-icon-box" class="w-10 h-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 flex-shrink-0">
+                <i data-lucide="database" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 id="redis-status-headline" class="text-sm font-bold text-white">Consultando servidor backend...</h4>
+                <p id="redis-status-subtext" class="text-xs text-zinc-400 mt-0.5">Aguardando resposta do endpoint /api/status.</p>
+              </div>
+            </div>
+            <span id="redis-api-key-badge" class="hidden sm:inline-flex items-center gap-1 text-[11px] font-mono px-2.5 py-1 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300">
+              <i data-lucide="key" class="w-3 h-3 text-amber-400"></i> API Key: Configurada
+            </span>
+          </div>
+        </div>
+
+        <!-- Cards de Métricas e Telemetria do Banco -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Card 1: Estado da Conexão -->
+          <div class="bg-[#161922] p-5 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between text-zinc-400 text-xs font-medium mb-2">
+                <span>Estado do Socket</span>
+                <i data-lucide="activity" class="w-4 h-4 text-purple-400"></i>
+              </div>
+              <div class="text-xl font-bold font-mono text-white" id="card-conn-state">--</div>
+            </div>
+            <div class="mt-3 text-[11px] text-zinc-500 font-mono" id="card-conn-desc">Protocolo TCP / RESP3</div>
+          </div>
+
+          <!-- Card 2: Latência do Ping -->
+          <div class="bg-[#161922] p-5 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between text-zinc-400 text-xs font-medium mb-2">
+                <span>Latência (Ping PONG)</span>
+                <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
+              </div>
+              <div class="text-xl font-bold font-mono text-white" id="card-conn-latency">-- ms</div>
+            </div>
+            <div class="mt-3 text-[11px] text-zinc-500 font-mono" id="card-conn-latency-desc">Tempo de ida e volta (RTT)</div>
+          </div>
+
+          <!-- Card 3: Total de Chaves no Keyspace -->
+          <div class="bg-[#161922] p-5 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between text-zinc-400 text-xs font-medium mb-2">
+                <span>Total de Chaves (DBSIZE)</span>
+                <i data-lucide="hard-drive" class="w-4 h-4 text-emerald-400"></i>
+              </div>
+              <div class="text-xl font-bold font-mono text-white" id="card-conn-dbsize">--</div>
+            </div>
+            <div class="mt-3 text-[11px] text-zinc-500 font-mono">Chaves ativas em db0</div>
+          </div>
+
+          <!-- Card 4: Respostas Sincronizadas -->
+          <div class="bg-[#161922] p-5 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between text-zinc-400 text-xs font-medium mb-2">
+                <span>Respostas Indexadas</span>
+                <i data-lucide="file-check" class="w-4 h-4 text-blue-400"></i>
+              </div>
+              <div class="text-xl font-bold font-mono text-white" id="card-conn-responses">--</div>
+            </div>
+            <div class="mt-3 text-[11px] text-zinc-500 font-mono">Do formulário Google Forms</div>
+          </div>
+        </div>
+
+        <!-- Painel de Conexão Oficial e Instruções CLI -->
+        <div class="mt-6 bg-[#161922] p-5 rounded-2xl border border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-4 text-left">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">
+                Endpoint Redis Cloud
+              </span>
+              <span class="text-xs font-mono text-zinc-300 font-semibold">industry-low-coast-32267.db.redis.io:16049</span>
+            </div>
+            <p class="text-[11px] text-zinc-400">
+              Conexão remota via porta 16049 com autenticação de usuário padrão (<code class="font-mono text-purple-300">default</code>).
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="copyAllRedisCommands()"
+              class="px-3.5 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/30 text-xs font-semibold flex items-center gap-1.5 transition"
+              title="Copiar os 226 comandos SET/SADD das 72 respostas para colar no Workbench do Redis Cloud">
+              <i data-lucide="terminal" class="w-3.5 h-3.5"></i>
+              <span>Popular Redis (Workbench)</span>
+            </button>
+            <button onclick="navigator.clipboard.writeText('redis-cli -u redis://default:SENHA@industry-low-coast-32267.db.redis.io:16049'); showToast('Comando redis-cli copiado! Substitua SENHA pela sua credencial.');"
+              class="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 text-xs font-mono flex items-center gap-2 transition"
+              title="Copiar comando de conexão CLI oficial">
+              <i data-lucide="copy" class="w-3.5 h-3.5 text-purple-400"></i>
+              <span>Copiar redis-cli</span>
+            </button>
+            <a href="https://cloud.redis.io/" target="_blank" rel="noopener noreferrer"
+              class="px-3.5 py-2 rounded-xl bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white border border-red-500/30 text-xs font-semibold flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-server"></i>
+              <span>Painel Web</span>
+              <i data-lucide="external-link" class="w-3 h-3"></i>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         8. SEÇÃO: RESPOSTAS DO GOOGLE FORMS
+         ========================================================================= -->
+    <section id="respostas-google-forms" class="py-16 sm:py-20 border-t border-zinc-800/80">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Cabeçalho da Seção com Métricas Principais -->
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8 text-left">
+          <div class="max-w-3xl">
+            <span class="text-xs font-mono font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+              Pipeline de Dados
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-3">Respostas do Google Forms</h2>
+            <p class="text-zinc-400 mt-2 text-sm sm:text-base leading-relaxed">
+              Dados reais coletados da pesquisa acadêmica de <strong>Planejamento de Futuro e Carreira</strong>, armazenados e consultados via Redis Cloud com proteção de integridade.
+            </p>
+          </div>
+
+          <!-- Botões Principais: Sincronizar e Atualizar -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button onclick="syncFormsResponses()" id="btn-sync-responses"
+              class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs shadow-md shadow-purple-600/20 hover:shadow-purple-600/40 transition flex items-center gap-2 focus:ring-2 focus:ring-purple-500">
+              <i data-lucide="refresh-cw" class="w-4 h-4" id="icon-sync-btn"></i>
+              <span id="text-sync-btn">Sincronizar respostas</span>
+            </button>
+
+            <button onclick="loadFormsResponses(1)"
+              class="px-3.5 py-2.5 rounded-xl bg-[#161922] hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 text-xs font-medium flex items-center gap-1.5 transition">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-zinc-400"></i>
+              <span>Atualizar dados</span>
+            </button>
+
+            <!-- Toggle de Proteção LGPD / Privacidade -->
+            <button onclick="togglePrivacyMode()" id="btn-privacy-toggle"
+              class="px-3 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 text-xs font-medium flex items-center gap-1.5 transition"
+              title="Ocultar ou exibir RAs e nomes completos para proteção de privacidade acadêmica">
+              <i data-lucide="shield" class="w-3.5 h-3.5 text-emerald-400" id="icon-privacy"></i>
+              <span id="text-privacy">Modo Privacidade: ON</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3 Cards de Resumo da Sincronização -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div class="bg-[#161922] p-4 rounded-xl border border-zinc-800 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <i data-lucide="users" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="text-[11px] text-zinc-400 font-medium">Quantidade Sincronizada</div>
+              <div class="text-lg font-bold text-white font-mono" id="stat-total-synced">--</div>
+            </div>
+          </div>
+
+          <div class="bg-[#161922] p-4 rounded-xl border border-zinc-800 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+              <i data-lucide="clock" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="text-[11px] text-zinc-400 font-medium">Última Sincronização</div>
+              <div class="text-xs font-semibold text-zinc-200 font-mono truncate" id="stat-last-sync">Nenhuma nesta sessão</div>
+            </div>
+          </div>
+
+          <div class="bg-[#161922] p-4 rounded-xl border border-zinc-800 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400">
+              <i data-lucide="server" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="text-[11px] text-zinc-400 font-medium">Status do Redis Cloud</div>
+              <div class="text-xs font-semibold font-mono" id="stat-redis-connection-indicator">Verificando...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de Busca e Filtros da Tabela -->
+        <div class="bg-[#161922] p-4 rounded-2xl border border-zinc-800 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div class="relative w-full md:w-80">
+            <i data-lucide="search" class="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="forms-search-input" placeholder="Pesquisar por nome, RA, objetivo..."
+              class="w-full pl-9 pr-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono">
+          </div>
+
+          <div class="flex items-center gap-2.5 w-full md:w-auto justify-end">
+            <label class="text-xs text-zinc-400 font-medium whitespace-nowrap">Filtrar Curso:</label>
+            <select id="forms-curso-select" onchange="filterFormsByCourse()"
+              class="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium">
+              <option value="todos">Todos os Cursos (72)</option>
+              <option value="inteligência artificial">Inteligência Artificial</option>
+              <option value="cibersegurança">Cibersegurança</option>
+              <option value="pleno">Técnico Pleno</option>
+              <option value="informática">Informática</option>
+              <option value="administração">Administração</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tabela Responsiva de Respostas Reais do Google Forms -->
+        <div class="bg-[#161922] rounded-2xl border border-zinc-800 overflow-hidden shadow-xl">
+
+          <!-- Estado de Carregamento (Loading) -->
+          <div id="forms-loading-state" class="py-16 text-center">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-2 border-purple-500 border-t-transparent mb-3"></div>
+            <p class="text-xs text-zinc-400 font-mono">Consultando banco de dados...</p>
+          </div>
+
+          <!-- Estado de Erro -->
+          <div id="forms-error-state" class="hidden py-14 px-6 text-center">
+            <div class="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+            </div>
+            <h4 class="text-sm font-bold text-white mb-1">Não foi possível carregar os dados</h4>
+            <p class="text-xs text-zinc-400 max-w-md mx-auto mb-4" id="forms-error-message">
+              Verifique se o backend está em execução ou configure a conexão com o Redis Cloud.
+            </p>
+            <div class="flex items-center justify-center gap-2">
+              <button onclick="loadFormsResponses(1)" class="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-200 font-semibold transition">
+                Tentar Novamente
+              </button>
+              <button onclick="loadFormsFallbackLocal()" class="px-4 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600 hover:text-white text-xs text-purple-300 font-semibold transition border border-purple-500/30">
+                Visualizar Arquivo Local
+              </button>
+            </div>
+          </div>
+
+          <!-- Estado Vazio (Sem Registros) -->
+          <div id="forms-empty-state" class="hidden py-14 px-6 text-center">
+            <div class="w-12 h-12 rounded-2xl bg-zinc-800 border border-zinc-700 text-zinc-400 flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="inbox" class="w-6 h-6"></i>
+            </div>
+            <h4 class="text-sm font-bold text-white mb-1">Nenhum registro encontrado</h4>
+            <p class="text-xs text-zinc-400 max-w-md mx-auto mb-4">
+              Nenhuma resposta corresponde aos filtros atuais ou o banco ainda não foi sincronizado.
+            </p>
+            <button onclick="syncFormsResponses()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs text-white font-semibold transition">
+              Sincronizar Respostas Agora
+            </button>
+          </div>
+
+          <!-- Tabela de Dados -->
+          <div id="forms-table-container" class="overflow-x-auto max-h-[600px] hidden">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-[#0f1118] text-zinc-400 font-mono text-[11px] uppercase tracking-wider sticky top-0 z-20 border-b border-zinc-800">
+                <tr>
+                  <th class="py-3 px-3.5 whitespace-nowrap">#</th>
+                  <th class="py-3 px-3.5 whitespace-nowrap">Carimbo</th>
+                  <th class="py-3 px-3.5 whitespace-nowrap">Nome</th>
+                  <th class="py-3 px-3.5 whitespace-nowrap">RA</th>
+                  <th class="py-3 px-3.5 whitespace-nowrap">Curso Técnico</th>
+                  <th class="py-3 px-3.5 whitespace-nowrap">Ano</th>
+                  <th class="py-3 px-3.5 min-w-[200px]">1. Objetivo Principal</th>
+                  <th class="py-3 px-3.5 min-w-[160px]">2. Mesma Área?</th>
+                  <th class="py-3 px-3.5 min-w-[140px]">3. Vestibular?</th>
+                  <th class="py-3 px-3.5 min-w-[220px]">Quais Vestibulares?</th>
+                  <th class="py-3 px-3.5 min-w-[200px]">4. Fator Carreira</th>
+                  <th class="py-3 px-3.5 min-w-[180px]">5. Preparo Curso</th>
+                  <th class="py-3 px-3.5 min-w-[140px]">6. Exterior?</th>
+                  <th class="py-3 px-3.5 min-w-[180px]">7. Busca Oportunidades</th>
+                  <th class="py-3 px-3.5 whitespace-nowrap">8. Horas/Sem</th>
+                  <th class="py-3 px-3.5 min-w-[200px]">9. Fator Escolha</th>
+                  <th class="py-3 px-3.5 whitespace-nowrap">10. Satisfação</th>
+                </tr>
+              </thead>
+              <tbody id="forms-table-body" class="divide-y divide-zinc-800/60 font-sans text-zinc-200">
+                <!-- Linhas injetadas via app.js -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Paginação do Painel -->
+          <div id="forms-pagination-bar" class="hidden px-5 py-3.5 bg-[#0f1118] border-t border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div class="text-zinc-400 font-mono text-[11px]" id="forms-pagination-summary">
+              Mostrando 1 a 10 de 72 respostas
+            </div>
+            <div class="flex items-center gap-1.5" id="forms-pagination-controls">
+              <!-- Botões gerados via app.js -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         9. SEÇÃO 6: COMPARATIVO GERAL DAS 5 FAMÍLIAS
          ========================================================================= -->
     <section id="comparacao" class="py-16 sm:py-20 border-t border-zinc-800/80 bg-[#0c0e14]">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1750,6 +2120,82 @@
         <button onclick="saveNewKey()"
           class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold transition focus:ring-2 focus:ring-purple-500">
           Salvar Chave (SET)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Guia de Setup do Redis Cloud & Google Forms -->
+  <div id="connection-guide-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
+    <div class="bg-[#161922] w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl p-6 border border-zinc-800 relative flex flex-col text-left shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-zinc-800 mb-4 sticky top-0 bg-[#161922] z-10">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <i data-lucide="help-circle" class="w-4 h-4 text-purple-400"></i> Como Conectar o Redis Cloud & Google Forms
+        </h3>
+        <button onclick="toggleConnectionGuideModal()"
+          class="w-7 h-7 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white flex items-center justify-center transition">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs text-zinc-300 leading-relaxed">
+        
+        <!-- Passo 1: Redis Cloud -->
+        <div class="p-3.5 rounded-xl bg-zinc-900/80 border border-zinc-800">
+          <div class="flex items-center gap-2 text-red-400 font-bold mb-1.5">
+            <span class="w-5 h-5 rounded-full bg-red-500/20 text-red-300 flex items-center justify-center text-[10px]">1</span>
+            <span>Obter Host e Porta no Redis Cloud</span>
+          </div>
+          <p class="text-zinc-400 mb-2">
+            Acesse o console oficial em <a href="https://cloud.redis.io/" target="_blank" class="text-red-400 underline font-semibold">cloud.redis.io</a>, clique no seu banco (Database) e localize a seção <strong>General > Public endpoint</strong>:
+          </p>
+          <div class="p-2.5 rounded-lg bg-black/60 font-mono text-[11px] text-zinc-300 border border-zinc-800 select-all">
+            Exemplo de Endpoint: redis-12345.c250.sa-east-1-1.ec2.redns.redis-cloud.com:12345
+          </div>
+          <p class="text-zinc-400 mt-2">
+            No arquivo <code class="font-mono text-purple-300">.env</code> do projeto, separe o Host da Porta:
+          </p>
+          <pre class="mt-1 p-2.5 rounded-lg bg-black/60 font-mono text-[11px] text-emerald-400 border border-zinc-800">
+REDIS_HOST=industry-low-coast-32267.db.redis.io
+REDIS_PORT=16049
+REDIS_PASSWORD=sua_senha_secreta_aqui</pre>
+        </div>
+
+        <!-- Passo 2: Google Sheets Live CSV -->
+        <div class="p-3.5 rounded-xl bg-zinc-900/80 border border-zinc-800">
+          <div class="flex items-center gap-2 text-emerald-400 font-bold mb-1.5">
+            <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-[10px]">2</span>
+            <span>Sincronização Contínua via Google Sheets</span>
+          </div>
+          <p class="text-zinc-400 mb-2">
+            Para que o botão <strong>"Sincronizar respostas"</strong> consulte sua planilha online em tempo real:
+          </p>
+          <ol class="list-decimal list-inside space-y-1 text-zinc-400 ml-1">
+            <li>Abra sua planilha do Google Sheets vinculada ao formulário.</li>
+            <li>Vá em <strong>Arquivo</strong> &gt; <strong>Compartilhar</strong> &gt; <strong>Publicar na Web</strong>.</li>
+            <li>Selecione a aba de respostas e escolha o formato <strong>Valores separados por vírgula (.csv)</strong>.</li>
+            <li>Clique em <strong>Publicar</strong>, copie o link gerado e cole no arquivo <code class="font-mono text-purple-300">.env</code> na variável <code class="font-mono text-purple-300">GOOGLE_SHEET_CSV_URL</code>.</li>
+          </ol>
+        </div>
+
+        <!-- Passo 3: Webhook Automático no Google Forms -->
+        <div class="p-3.5 rounded-xl bg-zinc-900/80 border border-zinc-800">
+          <div class="flex items-center gap-2 text-purple-400 font-bold mb-1.5">
+            <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-300 flex items-center justify-center text-[10px]">3</span>
+            <span>Envio Automático Instantâneo (Google Apps Script)</span>
+          </div>
+          <p class="text-zinc-400 mb-2">
+            O arquivo <code class="font-mono text-purple-300">google_apps_script.js</code> criado no seu projeto já contém o código pronto para enviar cada nova resposta diretamente para o Redis Cloud assim que um estudante enviar o formulário.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="mt-5 pt-3 border-t border-zinc-800 flex justify-end">
+        <button onclick="toggleConnectionGuideModal()"
+          class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs transition">
+          Entendi
         </button>
       </div>
     </div>

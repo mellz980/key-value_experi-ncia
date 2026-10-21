@@ -1265,6 +1265,485 @@ function escapeHtml(str) {
 }
 
 /* ==========================================================================
+   12. INTEGRAÇÃO REDIS CLOUD & GOOGLE FORMS CONTROLLER
+   ========================================================================== */
+
+const formsState = {
+  currentPage: 1,
+  limit: 10,
+  totalPages: 1,
+  totalRecords: 0,
+  searchQuery: '',
+  selectedCourse: 'todos',
+  privacyMode: localStorage.getItem('fecap_privacy_mode') !== 'false',
+  searchTimeout: null,
+  isSyncing: false
+};
+
+function getApiBaseUrl() {
+  const custom = localStorage.getItem('fecap_backend_url');
+  if (custom) return custom.replace(/\/$/, '');
+
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+    if (window.location.port === '3000' || !window.location.port) {
+      return '';
+    }
+  }
+  return 'http://localhost:3000';
+}
+
+/**
+ * Máscara LGPD para proteção de privacidade acadêmica
+ */
+function maskName(name) {
+  if (!name || !formsState.privacyMode) return name || '-';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length <= 1) return name;
+  return parts[0] + ' ' + parts.slice(1).map(p => p.charAt(0).toUpperCase() + '.').join(' ');
+}
+
+function maskRA(ra) {
+  if (!ra || !formsState.privacyMode) return ra || '-';
+  const s = String(ra).trim();
+  if (s.length <= 4) return s;
+  return s.substring(0, 4) + '****';
+}
+
+function getCourseBadgeClass(curso) {
+  const c = (curso || '').toLowerCase();
+  if (c.includes('inteligência artificial')) {
+    return 'bg-purple-500/10 text-purple-300 border-purple-500/20';
+  } else if (c.includes('cibersegurança') || c.includes('ciber')) {
+    return 'bg-red-500/10 text-red-300 border-red-500/20';
+  } else if (c.includes('pleno')) {
+    return 'bg-blue-500/10 text-blue-300 border-blue-500/20';
+  } else if (c.includes('informática')) {
+    return 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20';
+  } else if (c.includes('administração')) {
+    return 'bg-amber-500/10 text-amber-300 border-amber-500/20';
+  }
+  return 'bg-zinc-800 text-zinc-300 border-zinc-700';
+}
+
+/**
+ * Consulta o status real da conexão com o Redis Cloud
+ */
+async function checkRedisStatus(forceToast = false) {
+  const icon = document.getElementById('icon-refresh-status');
+  if (icon) icon.classList.add('animate-spin');
+
+  const dot = document.getElementById('redis-status-dot');
+  const badgeText = document.getElementById('redis-status-text');
+  const banner = document.getElementById('redis-status-banner');
+  const headline = document.getElementById('redis-status-headline');
+  const subtext = document.getElementById('redis-status-subtext');
+  const cardState = document.getElementById('card-conn-state');
+  const cardDesc = document.getElementById('card-conn-desc');
+  const cardLatency = document.getElementById('card-conn-latency');
+  const cardDbsize = document.getElementById('card-conn-dbsize');
+  const cardResponses = document.getElementById('card-conn-responses');
+  const statSynced = document.getElementById('stat-total-synced');
+  const statLastSync = document.getElementById('stat-last-sync');
+  const statRedisInd = document.getElementById('stat-redis-connection-indicator');
+
+  try {
+    const res = await fetch(`${getApiBaseUrl()}/api/status`, {
+      headers: { 'Accept': 'application/json' }
+    });
+
+    if (!res.ok) {
+      throw new Error(`Servidor respondeu com status HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    if (data.connected) {
+      // Conexão Real Estabelecida
+      if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+      if (badgeText) {
+        badgeText.textContent = 'Conectado';
+        badgeText.className = 'text-emerald-400 font-semibold';
+      }
+      if (banner) {
+        banner.className = 'mb-8 p-4 rounded-2xl border transition-all duration-300 bg-emerald-950/20 border-emerald-500/30 text-emerald-200';
+      }
+      if (headline) headline.textContent = 'Conexão Ativa com o Redis Cloud';
+      if (subtext) subtext.textContent = `Host: ${data.maskedHost} | Latência RTT: ${data.latencyMs || 0}ms | DBSIZE: ${data.dbsize || 0} chaves ativas.`;
+
+      if (cardState) {
+        cardState.textContent = 'ONLINE';
+        cardState.className = 'text-xl font-bold font-mono text-emerald-400';
+      }
+      if (cardDesc) cardDesc.textContent = 'Cluster ativo e respondendo';
+      if (cardLatency) cardLatency.textContent = `${data.latencyMs || 0} ms`;
+      if (cardDbsize) cardDbsize.textContent = `${data.dbsize || 0} chaves`;
+      if (cardResponses) cardResponses.textContent = `${data.totalSyncedResponses || 0} registros`;
+      if (statSynced) statSynced.textContent = `${data.totalSyncedResponses || 0} estudantes`;
+
+      if (statRedisInd) {
+        statRedisInd.textContent = 'Conectado (Online)';
+        statRedisInd.className = 'text-xs font-semibold font-mono text-emerald-400';
+      }
+
+      if (data.lastSyncTimestamp) {
+        const d = new Date(data.lastSyncTimestamp);
+        if (statLastSync) statLastSync.textContent = d.toLocaleString('pt-BR');
+      }
+
+      if (forceToast) showToast('Conexão com Redis Cloud verificada com sucesso!');
+    } else {
+      // Conexão Não Estabelecida (Não simula ativa)
+      if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-500';
+      if (badgeText) {
+        badgeText.textContent = 'Desconectado';
+        badgeText.className = 'text-amber-400 font-semibold';
+      }
+      if (banner) {
+        banner.className = 'mb-8 p-4 rounded-2xl border transition-all duration-300 bg-amber-950/20 border-amber-500/30 text-amber-200';
+      }
+      if (headline) headline.textContent = 'Redis Cloud Desconectado';
+      if (subtext) subtext.textContent = data.statusText || 'Preencha REDIS_HOST e REDIS_PORT no arquivo .env para conectar ao seu banco.';
+
+      if (cardState) {
+        cardState.textContent = 'OFFLINE';
+        cardState.className = 'text-xl font-bold font-mono text-amber-400';
+      }
+      if (cardDesc) cardDesc.textContent = 'Aguardando configuração de Host/Porta';
+      if (cardLatency) cardLatency.textContent = '-- ms';
+      if (cardDbsize) cardDbsize.textContent = '0 chaves';
+      if (cardResponses) cardResponses.textContent = '0 registros';
+      if (statSynced) statSynced.textContent = '0 respostas';
+
+      if (statRedisInd) {
+        statRedisInd.textContent = 'Desconectado (Aguardando Host/Port)';
+        statRedisInd.className = 'text-xs font-semibold font-mono text-amber-400';
+      }
+
+      if (forceToast) showToast('Aviso: Redis Cloud desconectado no servidor.');
+    }
+
+  } catch (err) {
+    // Backend offline ou falha de requisição
+    if (dot) dot.className = 'w-2 h-2 rounded-full bg-red-500';
+    if (badgeText) {
+      badgeText.textContent = 'Backend Offline';
+      badgeText.className = 'text-red-400 font-semibold';
+    }
+    if (banner) {
+      banner.className = 'mb-8 p-4 rounded-2xl border transition-all duration-300 bg-red-950/20 border-red-500/30 text-red-200';
+    }
+    if (headline) headline.textContent = 'Servidor Backend Não Encontrado';
+    if (subtext) subtext.textContent = 'Inicie o servidor Node.js com o comando "npm start" no terminal para conectar ao Redis Cloud.';
+
+    if (cardState) {
+      cardState.textContent = 'STANDALONE';
+      cardState.className = 'text-xl font-bold font-mono text-red-400';
+    }
+    if (cardDesc) cardDesc.textContent = 'Servidor HTTP local não detectado';
+    if (statRedisInd) {
+      statRedisInd.textContent = 'Backend Offline';
+      statRedisInd.className = 'text-xs font-semibold font-mono text-red-400';
+    }
+
+    if (forceToast) showToast('Não foi possível conectar ao servidor backend (porta 3000).');
+  } finally {
+    if (icon) {
+      setTimeout(() => icon.classList.remove('animate-spin'), 400);
+    }
+  }
+}
+
+/**
+ * Dispara a sincronização real entre Google Forms / Planilha e o Redis Cloud
+ */
+async function syncFormsResponses() {
+  if (formsState.isSyncing) return;
+  formsState.isSyncing = true;
+
+  const btn = document.getElementById('btn-sync-responses');
+  const icon = document.getElementById('icon-sync-btn');
+  const text = document.getElementById('text-sync-btn');
+
+  if (icon) icon.classList.add('animate-spin');
+  if (text) text.textContent = 'Sincronizando...';
+  if (btn) btn.disabled = true;
+
+  try {
+    const res = await fetch(`${getApiBaseUrl()}/api/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      showToast(`Sucesso! ${data.syncedCount} novas respostas sincronizadas no Redis Cloud.`);
+      await checkRedisStatus(false);
+      await loadFormsResponses(1);
+    } else {
+      const errMsg = data.error || 'Falha ao sincronizar respostas.';
+      showToast(`Erro na sincronização: ${errMsg}`);
+      const errBox = document.getElementById('forms-error-message');
+      if (errBox) errBox.textContent = errMsg;
+    }
+  } catch (err) {
+    showToast('Falha na comunicação: verifique se o servidor backend está rodando.');
+  } finally {
+    formsState.isSyncing = false;
+    if (icon) icon.classList.remove('animate-spin');
+    if (text) text.textContent = 'Sincronizar respostas';
+    if (btn) btn.disabled = false;
+  }
+}
+
+/**
+ * Consulta e renderiza a tabela de respostas paginada
+ */
+async function loadFormsResponses(page = 1, fallbackMode = false) {
+  formsState.currentPage = page;
+
+  const loadingEl = document.getElementById('forms-loading-state');
+  const errorEl = document.getElementById('forms-error-state');
+  const emptyEl = document.getElementById('forms-empty-state');
+  const tableContainer = document.getElementById('forms-table-container');
+  const tableBody = document.getElementById('forms-table-body');
+  const paginationBar = document.getElementById('forms-pagination-bar');
+
+  if (loadingEl) loadingEl.classList.remove('hidden');
+  if (errorEl) errorEl.classList.add('hidden');
+  if (emptyEl) emptyEl.classList.add('hidden');
+  if (tableContainer) tableContainer.classList.add('hidden');
+  if (paginationBar) paginationBar.classList.add('hidden');
+
+  const search = encodeURIComponent(formsState.searchQuery);
+  const curso = encodeURIComponent(formsState.selectedCourse);
+  const previewParam = fallbackMode ? '&preview=true' : '';
+
+  try {
+    let records = [];
+    let total = 0;
+    let totalPages = 1;
+    let source = 'redis-cloud';
+
+    // 1. Tenta carregar do backend (Redis Cloud ou endpoint local)
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/api/respostas?page=${page}&limit=${formsState.limit}&search=${search}&curso=${curso}${previewParam}`);
+      if (res.ok) {
+        const data = await res.json();
+        records = data.records || [];
+        total = data.total || 0;
+        totalPages = data.totalPages || 1;
+        source = data.source || 'redis-cloud';
+      } else if (res.status === 503 && !fallbackMode) {
+        return loadFormsResponses(page, true);
+      } else {
+        throw new Error('Falha HTTP backend');
+      }
+    } catch(backendErr) {
+      // 2. Fallback direto para window.PESQUISA_RAW_DATA (sempre garante que os dados apareçam!)
+      if (window.PESQUISA_RAW_DATA && Array.isArray(window.PESQUISA_RAW_DATA)) {
+        let list = window.PESQUISA_RAW_DATA;
+        if (formsState.selectedCourse !== 'todos') {
+          list = list.filter(r => (r.curso || '').toLowerCase().includes(formsState.selectedCourse.toLowerCase()));
+        }
+        if (formsState.searchQuery) {
+          const q = formsState.searchQuery.toLowerCase();
+          list = list.filter(r =>
+            (r.nome || '').toLowerCase().includes(q) ||
+            (r.ra || '').toLowerCase().includes(q) ||
+            (r.curso || '').toLowerCase().includes(q) ||
+            (r.objetivo || '').toLowerCase().includes(q)
+          );
+        }
+        total = list.length;
+        totalPages = Math.ceil(total / formsState.limit) || 1;
+        const start = (page - 1) * formsState.limit;
+        records = list.slice(start, start + formsState.limit);
+        source = 'local-dataset';
+      } else {
+        throw backendErr;
+      }
+    }
+
+    formsState.totalRecords = total;
+    formsState.totalPages = totalPages;
+
+    if (loadingEl) loadingEl.classList.add('hidden');
+
+    if (records.length === 0) {
+      if (emptyEl) emptyEl.classList.remove('hidden');
+      return;
+    }
+
+    if (tableBody) {
+      tableBody.innerHTML = '';
+      const startNum = (page - 1) * formsState.limit;
+
+      records.forEach((rec, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-zinc-800/40 transition duration-150 border-b border-zinc-800/50';
+
+        const rowNum = startNum + idx + 1;
+        const maskedName = maskName(rec.nome);
+        const maskedRA = maskRA(rec.ra);
+        const badgeClass = getCourseBadgeClass(rec.curso);
+
+        tr.innerHTML = `
+          <td class="py-3 px-3.5 font-mono text-zinc-500 font-bold whitespace-nowrap">${rowNum}</td>
+          <td class="py-3 px-3.5 font-mono text-[11px] text-zinc-400 whitespace-nowrap">${escapeHtml(rec.timestamp || '-')}</td>
+          <td class="py-3 px-3.5 font-semibold text-white whitespace-nowrap">${escapeHtml(maskedName)}</td>
+          <td class="py-3 px-3.5 font-mono text-purple-300 whitespace-nowrap">${escapeHtml(maskedRA)}</td>
+          <td class="py-3 px-3.5 whitespace-nowrap">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${badgeClass}">
+              ${escapeHtml(rec.curso || 'Não Informado')}
+            </span>
+          </td>
+          <td class="py-3 px-3.5 font-mono text-zinc-300 whitespace-nowrap">${escapeHtml(rec.ano || '-')}</td>
+          <td class="py-3 px-3.5 text-zinc-300 text-xs min-w-[200px]" title="${escapeHtml(rec.objetivo || '')}">${escapeHtml(rec.objetivo || '-')}</td>
+          <td class="py-3 px-3.5 text-zinc-400 text-xs min-w-[160px]">${escapeHtml(rec.mesma_area || '-')}</td>
+          <td class="py-3 px-3.5 text-zinc-400 text-xs min-w-[140px]">${escapeHtml(rec.vestibular || '-')}</td>
+          <td class="py-3 px-3.5 text-zinc-400 text-xs min-w-[220px]" title="${escapeHtml(rec.vestibulares_quais || '')}">${escapeHtml(rec.vestibulares_quais || '-')}</td>
+          <td class="py-3 px-3.5 text-zinc-400 text-xs min-w-[200px]">${escapeHtml(rec.fator_carreira || '-')}</td>
+          <td class="py-3 px-3.5 text-zinc-400 text-xs min-w-[180px]">${escapeHtml(rec.preparo_curso || '-')}</td>
+          <td class="py-3 px-3.5 text-zinc-400 text-xs min-w-[140px]">${escapeHtml(rec.trabalhar_exterior || '-')}</td>
+          <td class="py-3 px-3.5 text-zinc-400 text-xs min-w-[180px]">${escapeHtml(rec.busca_oportunidades || '-')}</td>
+          <td class="py-3 px-3.5 font-mono text-zinc-300 whitespace-nowrap">${escapeHtml(rec.horas_estudo || '-')}</td>
+          <td class="py-3 px-3.5 text-zinc-400 text-xs min-w-[200px]">${escapeHtml(rec.fator_escolha_curso || '-')}</td>
+          <td class="py-3 px-3.5 font-semibold text-emerald-400 whitespace-nowrap">${escapeHtml(rec.satisfacao || '-')}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    if (tableContainer) tableContainer.classList.remove('hidden');
+    renderPaginationControls();
+
+    // Atualiza contador de respondentes
+    const statSynced = document.getElementById('stat-total-synced');
+    if (statSynced) {
+      statSynced.textContent = `${total} estudantes`;
+    }
+
+  } catch (err) {
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (errorEl) errorEl.classList.remove('hidden');
+    const msg = document.getElementById('forms-error-message');
+    if (msg) msg.textContent = 'Erro ao consultar respostas: ' + err.message;
+  }
+}
+
+function loadFormsFallbackLocal() {
+  loadFormsResponses(1, true);
+}
+
+/**
+ * Constrói os botões de paginação
+ */
+function renderPaginationControls() {
+  const bar = document.getElementById('forms-pagination-bar');
+  const summary = document.getElementById('forms-pagination-summary');
+  const controls = document.getElementById('forms-pagination-controls');
+  if (!bar || !summary || !controls) return;
+
+  bar.classList.remove('hidden');
+
+  const start = (formsState.currentPage - 1) * formsState.limit + 1;
+  const end = Math.min(formsState.currentPage * formsState.limit, formsState.totalRecords);
+  summary.textContent = `Mostrando ${start} a ${end} de ${formsState.totalRecords} respostas`;
+
+  controls.innerHTML = '';
+
+  // Botão Anterior
+  const prevBtn = document.createElement('button');
+  prevBtn.disabled = formsState.currentPage <= 1;
+  prevBtn.className = `px-3 py-1.5 rounded-lg border text-xs font-medium transition ${
+    prevBtn.disabled
+      ? 'bg-zinc-900 border-zinc-800 text-zinc-600 cursor-not-allowed'
+      : 'bg-zinc-800 border-zinc-700 text-zinc-200 hover:bg-zinc-700 hover:text-white'
+  }`;
+  prevBtn.innerHTML = '&larr; Anterior';
+  prevBtn.onclick = () => loadFormsResponses(formsState.currentPage - 1);
+  controls.appendChild(prevBtn);
+
+  // Páginas Numeradas (Janela de páginas)
+  const maxButtons = 5;
+  let startPage = Math.max(1, formsState.currentPage - 2);
+  let endPage = Math.min(formsState.totalPages, startPage + maxButtons - 1);
+
+  if (endPage - startPage < maxButtons - 1) {
+    startPage = Math.max(1, endPage - maxButtons + 1);
+  }
+
+  for (let p = startPage; p <= endPage; p++) {
+    const pageBtn = document.createElement('button');
+    const isActive = (p === formsState.currentPage);
+    pageBtn.className = `w-8 h-8 rounded-lg border text-xs font-semibold font-mono transition ${
+      isActive
+        ? 'bg-purple-600 border-purple-500 text-white shadow-md'
+        : 'bg-zinc-800/80 border-zinc-700 text-zinc-300 hover:bg-zinc-700 hover:text-white'
+    }`;
+    pageBtn.textContent = p;
+    pageBtn.onclick = () => loadFormsResponses(p);
+    controls.appendChild(pageBtn);
+  }
+
+  // Botão Próximo
+  const nextBtn = document.createElement('button');
+  nextBtn.disabled = formsState.currentPage >= formsState.totalPages;
+  nextBtn.className = `px-3 py-1.5 rounded-lg border text-xs font-medium transition ${
+    nextBtn.disabled
+      ? 'bg-zinc-900 border-zinc-800 text-zinc-600 cursor-not-allowed'
+      : 'bg-zinc-800 border-zinc-700 text-zinc-200 hover:bg-zinc-700 hover:text-white'
+  }`;
+  nextBtn.innerHTML = 'Próximo &rarr;';
+  nextBtn.onclick = () => loadFormsResponses(formsState.currentPage + 1);
+  controls.appendChild(nextBtn);
+}
+
+/**
+ * Filtro por curso
+ */
+function filterFormsByCourse() {
+  const select = document.getElementById('forms-curso-select');
+  if (select) {
+    formsState.selectedCourse = select.value;
+    loadFormsResponses(1);
+  }
+}
+
+/**
+ * Alternador do modo de privacidade (LGPD)
+ */
+function togglePrivacyMode() {
+  formsState.privacyMode = !formsState.privacyMode;
+  localStorage.setItem('fecap_privacy_mode', formsState.privacyMode);
+
+  const textEl = document.getElementById('text-privacy');
+  const iconEl = document.getElementById('icon-privacy');
+
+  if (textEl) textEl.textContent = formsState.privacyMode ? 'Modo Privacidade: ON' : 'Modo Privacidade: OFF';
+  if (iconEl) {
+    iconEl.className = formsState.privacyMode
+      ? 'w-3.5 h-3.5 text-emerald-400'
+      : 'w-3.5 h-3.5 text-zinc-500';
+  }
+
+  showToast(formsState.privacyMode ? 'Modo Privacidade ativado (RAs e Nomes mascarados)' : 'Modo Privacidade desativado');
+  loadFormsResponses(formsState.currentPage);
+}
+
+/**
+ * Abre/Fecha o Modal de Guia de Conexão
+ */
+function toggleConnectionGuideModal() {
+  const modal = document.getElementById('connection-guide-modal');
+  if (modal) {
+    modal.classList.toggle('hidden');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+}
+
+/* ==========================================================================
    11. INICIALIZAÇÃO GERAL
    ========================================================================== */
 document.addEventListener('DOMContentLoaded', () => {
@@ -1284,10 +1763,27 @@ document.addEventListener('DOMContentLoaded', () => {
     populateUserQuickSelect();
   }
 
+  // 3. Inicializa Busca com Debounce no Google Forms
+  const searchInput = document.getElementById('forms-search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(formsState.searchTimeout);
+      formsState.searchTimeout = setTimeout(() => {
+        formsState.searchQuery = e.target.value.trim();
+        loadFormsResponses(1);
+      }, 300);
+    });
+  }
+
+  // 4. Checagem inicial do Redis Cloud e carregamento de respostas
+  checkRedisStatus(false);
+  loadFormsResponses(1);
+
   // Executa uma simulação inicial de hash lookup para preencher a visualização didática
   setTimeout(() => {
     simulateHashLookup('user:25011962:carreira');
   }, 300);
 
-  console.log('NoSQL Key-Value Store - Aplicação Big Data inicializada com sucesso!');
+  console.log('NoSQL Key-Value Store & Redis Cloud Integration inicializados com sucesso!');
 });
+

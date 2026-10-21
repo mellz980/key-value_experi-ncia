@@ -1,0 +1,26 @@
+{
+  "name": "key-value-fecap-redis",
+  "version": "1.0.0",
+  "description": "NoSQL Key-Value Store & Integração Google Forms com Redis Cloud - FECAP 2026",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "redis",
+    "redis-cloud",
+    "google-forms",
+    "key-value",
+    "big-data",
+    "fecap"
+  ],
+  "author": "Melissa Nunes de Oliveira",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "redis": "^4.7.0"
+  }
+}

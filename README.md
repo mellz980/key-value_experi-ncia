@@ -8,29 +8,35 @@ A aplicação integra a fundamentação teórica de bancos de dados NoSQL do tip
 
 ## 🚀 Como Executar
 
-### Opção 1: Execução Direta no Navegador (Sem servidor necessário)
-Basta dar um duplo clique no arquivo [`index.html`](file:///c:/Users/25011962/OneDrive%20-%20Funda%C3%A7%C3%A3o%20Escola%20de%20Com%C3%A9rcio%20%C3%81lvares%20Penteado/bigdata_keyvalue/index.html) em qualquer navegador moderno (Chrome, Edge, Firefox, Brave, Safari). Todo o dataset e as bibliotecas funcionam standalone via CDN.
-
-### Opção 2: Via Servidor Local (Python / Node / Live Server)
+### Opção 1: Execução com Servidor Backend Completo (Node.js + Redis Cloud)
 ```bash
-# Python
-python -m http.server 8080
+# 1. Instalar as dependências
+npm install
 
-# Ou Node.js (npx)
-npx serve .
+# 2. Configurar o arquivo .env com suas credenciais do Redis Cloud
+# (utilize o template .env.example como base)
+
+# 3. Iniciar o servidor
+npm start
 ```
-Acesse: [http://localhost:8080](http://localhost:8080)
+Acesse no navegador: [http://localhost:3000](http://localhost:3000)
+
+### Opção 2: Execução Direta no Navegador (Standalone / GitHub Pages)
+Abra o arquivo `index.html` diretamente em qualquer navegador moderno. O frontend funciona tanto standalone quanto conectado ao backend Node.js.
 
 ---
 
 ## 📁 Estrutura de Arquivos do Projeto
 
-- [`index.html`](file:///c:/Users/25011962/OneDrive%20-%20Funda%C3%A7%C3%A3o%20Escola%20de%20Com%C3%A9rcio%20%C3%81lvares%20Penteado/bigdata_keyvalue/index.html): Interface completa da Single Page Application com as 7 seções acadêmicas, navegação responsiva, modais e layout em tema violeta moderno.
-- [`styles.css`](file:///c:/Users/25011962/OneDrive%20-%20Funda%C3%A7%C3%A3o%20Escola%20de%20Com%C3%A9rcio%20%C3%81lvares%20Penteado/bigdata_keyvalue/styles.css): Folha de estilo personalizada com suporte a Dark/Light Mode, glassmorphism, terminal CRT/CLI styling e animações.
-- [`app.js`](file:///c:/Users/25011962/OneDrive%20-%20Funda%C3%A7%C3%A3o%20Escola%20de%20Com%C3%A9rcio%20%C3%81lvares%20Penteado/bigdata_keyvalue/app.js): Motor em memória do banco Chave-Valor (`KeyValueEngine`), interpretador de comandos Redis CLI, benchmark runner, gerador de gráficos Chart.js e visual store explorer.
-- [`pesquisa_data.js`](file:///c:/Users/25011962/OneDrive%20-%20Funda%C3%A7%C3%A3o%20Escola%20de%20Com%C3%A9rcio%20%C3%81lvares%20Penteado/bigdata_keyvalue/pesquisa_data.js): Base de dados normalizada em JavaScript (`window.PESQUISA_RAW_DATA`) extraída do arquivo CSV original.
-- [`pesquisa_data.json`](file:///c:/Users/25011962/OneDrive%20-%20Funda%C3%A7%C3%A3o%20Escola%20de%20Com%C3%A9rcio%20%C3%81lvares%20Penteado/bigdata_keyvalue/pesquisa_data.json): Dataset limpo em formato JSON para exportação e interoperabilidade.
-- [`PLANEJAMENETO DO FUTURO E CARREIRA.csv`](file:///c:/Users/25011962/OneDrive%20-%20Funda%C3%A7%C3%A3o%20Escola%20de%20Com%C3%A9rcio%20%C3%81lvares%20Penteado/bigdata_keyvalue/PLANEJAMENETO%20DO%20FUTURO%20E%20CARREIRA.csv): Planilha original de respostas coletadas dos estudantes da FECAP.
+- `index.html`: Interface completa da Single Page Application com as seções acadêmicas, navegação responsiva, modais, painel de telemetria "Meu Banco de Dados" e tabela de "Respostas do Google Forms".
+- `styles.css`: Folha de estilo personalizada com suporte a Dark/Light Mode, glassmorphism e animações.
+- `app.js`: Motor em memória (`KeyValueEngine`), CLI Redis didático, controladores de telemetria do Redis Cloud, paginação, busca e proteção de privacidade LGPD.
+- `server.js`: Backend Node.js (Express + cliente oficial Redis) com rotas para consulta de status, sincronização com Google Sheets/CSV, webhook para Google Apps Script e prevenção de duplicatas.
+- `google_apps_script.js`: Script pronto para colar no Google Sheets / Google Forms para envio automático de respostas em tempo real.
+- `.env.example`: Modelo de variáveis de ambiente seguras (porta, host, porta, senha/API key do Redis Cloud e URL do Sheets).
+- `pesquisa_data.js`: Base de dados normalizada em JavaScript (`window.PESQUISA_RAW_DATA`).
+- `pesquisa_data.json`: Dataset limpo em formato JSON para exportação e interoperabilidade.
+- `PLANEJAMENETO DO FUTURO E CARREIRA.csv`: Planilha original de respostas coletadas dos estudantes da FECAP.
 
 ---
 
