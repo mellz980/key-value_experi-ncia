@@ -578,6 +578,9 @@ window.onUserSelectChange = function(selectedKey) {
   const terminalInput = document.getElementById('terminal-input');
   if (terminalInput) {
     terminalInput.value = `GET ${selectedKey}`;
+    if (typeof window.submitTerminalCommand === 'function') {
+      window.submitTerminalCommand();
+    }
   }
 };
 
